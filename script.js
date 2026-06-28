@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (大标题无拼音干净查词版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (自适应完美排错版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -26,9 +26,9 @@ window.onload = function() {
                     span.innerText = item;
                     titleEl.appendChild(span);
                 } else if (Array.isArray(item)) {
-                    // 🌟 课文标题互动词包：去掉 <rt> 拼音标签防止顶部显示，但保留 ruby 属性支持完美查词
+                    // 🌟 课文标题互动词包：不显示上方拼音，保持界面干净，保留点击字典气泡
                     const rubyEl = document.createElement('ruby');
-                    rubyEl.innerHTML = `${item[0]}`; // ✨ 隐藏上方拼音，保持界面干净
+                    rubyEl.innerHTML = `${item[0]}`; 
                     rubyEl.style.cursor = "pointer";
                     
                     rubyEl.onclick = (e) => {
@@ -166,7 +166,7 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器
+// 🎯 选择题渲染器 (智能自适应防 undefined 增强版)
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -214,16 +214,28 @@ function renderMultipleChoiceQuizzes() {
 
         shuffledOptions.forEach((opt, index) => {
             const currentLetter = staticLetters[index]; 
-            const finalOptText = `${currentLetter} ${opt.content}`;
+            
+            // ✨ 核心诊断修复：智能判断选项是普通文本还是复杂对象
+            let textToShow = "";
+            let originalLetter = currentLetter; 
+
+            if (typeof opt === 'string') {
+                textToShow = opt; // 如果是普通文本，直接显示
+            } else if (opt && typeof opt === 'object') {
+                textToShow = opt.content || opt.text || ""; // 如果是对象，自适应读取 content 或 text
+                if (opt.letter) originalLetter = opt.letter; // 如果定义了原字母，则同步绑定
+            }
+
+            const finalOptText = `${currentLetter} ${textToShow}`;
 
             const btn = document.createElement('button');
             btn.className = "quiz-choice-btn";
             btn.innerText = finalOptText;
             
-            btn.setAttribute("data-original-letter", opt.letter); 
+            btn.setAttribute("data-original-letter", originalLetter); 
             btn.setAttribute("data-current-letter", currentLetter);
 
-            if (isTeacherMode && opt.letter === q.answer) {
+            if (isTeacherMode && originalLetter === q.answer) {
                 btn.innerText = finalOptText + "  (⭐ 答案)";
                 btn.style.color = "#e67e22";
                 btn.style.fontWeight = "bold";
@@ -266,7 +278,7 @@ function renderMultipleChoiceQuizzes() {
                 btn.style.fontWeight = "700";              
                 btn.style.boxShadow = "0 4px 15px rgba(41, 128, 185, 0.15)"; 
 
-                userSelectedAnswers[q.id] = opt.letter; 
+                userSelectedAnswers[q.id] = originalLetter; 
             };
             optionsBox.appendChild(btn);
         });
@@ -414,7 +426,6 @@ function openPop(el, i) {
         if (i === -1 || !lessonData[i]) return;
         currentIdx = i; d = lessonData[i];
     } else {
-        // 如果点击大标题，完美调取其专属生词包数据
         d = currentQuizWordData;
         currentIdx = -1; 
     }
@@ -456,7 +467,6 @@ function saveToNotebook(e) {
     setTimeout(() => btn.innerText = "Copy 📋", 1000); 
 }
 
-// 渲染生词本
 function renderNB() { 
     const list = document.getElementById('notebookList'); 
     if (!list) return;
