@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (大标题矩阵化精准对齐版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (大标题无拼音干净查词版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -26,9 +26,9 @@ window.onload = function() {
                     span.innerText = item;
                     titleEl.appendChild(span);
                 } else if (Array.isArray(item)) {
-                    // 🌟 课文标题中和正文格式完全一样的生词包：["字", "拼音", "英文", "马来文"]
+                    // 🌟 课文标题互动词包：去掉 <rt> 拼音标签防止顶部显示，但保留 ruby 属性支持完美查词
                     const rubyEl = document.createElement('ruby');
-                    rubyEl.innerHTML = `${item[0]}<rt>${item[1]}</rt>`;
+                    rubyEl.innerHTML = `${item[0]}`; // ✨ 隐藏上方拼音，保持界面干净
                     rubyEl.style.cursor = "pointer";
                     
                     rubyEl.onclick = (e) => {
@@ -166,7 +166,7 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器 (纯净无拼音防干扰版)
+// 🎯 选择题渲染器
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -297,7 +297,7 @@ function submitAllAnswers() {
     const answeredCount = Object.keys(userSelectedAnswers).length;
 
     if (answeredCount < totalQuestions) {
-        alert(`⚠️ 老师发现 you 还有未填完的习题哦！目前完成了 (${answeredCount} / ${totalQuestions}) 题。`);
+        alert(`⚠️ 老师发现你还有未填完的习题哦！目前完成了 (${answeredCount} / ${totalQuestions}) 题。`);
         return;
     }
 
@@ -414,9 +414,9 @@ function openPop(el, i) {
         if (i === -1 || !lessonData[i]) return;
         currentIdx = i; d = lessonData[i];
     } else {
-        // 如果点击大标题的自定义矩阵，完美调取专属词包
+        // 如果点击大标题，完美调取其专属生词包数据
         d = currentQuizWordData;
-        currentIdx = -1; // 标题自定词汇手滑点错不需要同步进入正文生词本
+        currentIdx = -1; 
     }
     
     if (!d) return;
@@ -456,6 +456,7 @@ function saveToNotebook(e) {
     setTimeout(() => btn.innerText = "Copy 📋", 1000); 
 }
 
+// 渲染生词本
 function renderNB() { 
     const list = document.getElementById('notebookList'); 
     if (!list) return;
