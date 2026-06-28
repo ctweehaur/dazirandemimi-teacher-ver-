@@ -1,34 +1,31 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (直接选项 ✅ 干净版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (含生词本单个精准删除功能)
 // ==========================================================================
 
 let currentIdx = -1; 
+let currentDataType = 'lesson'; 
+let currentQuizWordData = null;  
 let saved = JSON.parse(localStorage.getItem('saved_104')) || [];
 let quizData = [];
 let currentQuizIdx = 0;
 let isLocked = false;
-let userSelectedAnswers = {}; // 存储学生当前选中的临时答案 (格式： { 题目ID: "选中的选项完整文本" })
-let isTeacherMode = false;    // 👨‍🏫 全局记录教师模式是否激活
+let userSelectedAnswers = {}; 
+let isTeacherMode = false;    
 
 window.onload = function() {
-    // 初始化网页标题
     if (typeof lessonTitle !== 'undefined') {
         document.getElementById('articleTitle').innerText = lessonTitle;
         document.title = lessonTitle;
     }
 
-    // 渲染课文基底、生词本和选择题
     if (typeof lessonData !== 'undefined') { 
         render(); 
         renderNB(); 
         renderMultipleChoiceQuizzes(); 
     }
     
-    // 初始化气泡弹窗事件，点击空白处自动收回激活状态
     const popover = document.getElementById('buddyPopover');
-    if (popover) {
-        document.body.appendChild(popover);
-    }
+    if (popover) { document.body.appendChild(popover); }
     document.addEventListener('click', () => { 
         const pop = document.getElementById('buddyPopover');
         if (pop) pop.style.display = 'none'; 
@@ -36,7 +33,6 @@ window.onload = function() {
     });
 };
 
-// 👨‍🏫 教师专用隐藏门验证与切换逻辑
 function toggleTeacherMode() {
     const btn = document.getElementById('teacherModeBtn');
     if (!btn) return;
@@ -56,12 +52,11 @@ function toggleTeacherMode() {
         btn.innerText = "👨‍🏫 教师模式";
         btn.style.background = "#e67e22";
     }
-    // 状态切换后自动重刷界面，实时隐藏/展现解析面板
     render();
     renderMultipleChoiceQuizzes();
 }
 
-// 📖 正文渲染器：支持华文首行空两格，并将灰色段号悬浮在左侧，同时动态支持教师赏析卡片
+// 📖 正文课文渲染器
 function render() {
     const cnt = document.getElementById('content'); 
     if (!cnt) return;
@@ -89,7 +84,6 @@ function render() {
             let s = document.createElement("span");
             s.className = "p-index";
             s.innerText = "第" + pNum + "段";
-            
             s.style.position = "absolute";
             s.style.left = "-55px"; 
             s.style.top = "4px"; 
@@ -98,7 +92,6 @@ function render() {
             paragraphElement.insertBefore(s, paragraphElement.firstChild); 
             cnt.appendChild(paragraphElement);
 
-            // 👨‍🏫 教师模式特权
             if (isTeacherMode && typeof lessonAppreciation !== 'undefined' && lessonAppreciation[pNum - 1]) {
                 const appBox = document.createElement("div");
                 appBox.style.background = "#f4f9f4";
@@ -127,6 +120,7 @@ function render() {
                 e.stopPropagation(); 
                 document.querySelectorAll('ruby').forEach(x=>x.classList.remove('is-active')); 
                 r.classList.add('is-active'); 
+                currentDataType = 'lesson';
                 openPop(e.currentTarget, i);
             };
             r.innerHTML = `${d[0]}<rt>${d[1]}</rt>`; 
@@ -134,6 +128,45 @@ function render() {
         }
     });
     finalizeParagraph(p);
+}
+
+// 🌟【独立题库词汇引擎】
+function renderInteractiveQuizParts(dataArray) {
+    const fragment = document.createDocumentFragment();
+    if (!Array.isArray(dataArray)) {
+        const textSpan = document.createElement('span');
+        textSpan.innerText = dataArray;
+        return textSpan;
+    }
+
+    dataArray.forEach(item => {
+        if (typeof item === 'string') {
+            const subLines = item.split('\n');
+            subLines.forEach((subLine, sIdx) => {
+                const span = document.createElement('span');
+                span.innerText = subLine;
+                fragment.appendChild(span);
+                if (sIdx < subLines.length - 1) {
+                    fragment.appendChild(document.createElement('br'));
+                }
+            });
+        } else if (Array.isArray(item)) {
+            const rubyEl = document.createElement('ruby');
+            rubyEl.innerHTML = `${item[0]}<rt>${item[1]}</rt>`;
+            rubyEl.style.cursor = "pointer";
+            
+            rubyEl.onclick = (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('ruby').forEach(x => x.classList.remove('is-active'));
+                rubyEl.classList.add('is-active');
+                currentDataType = 'quiz'; 
+                currentQuizWordData = item; 
+                openPop(e.currentTarget, null);
+            };
+            fragment.appendChild(rubyEl);
+        }
+    });
+    return fragment;
 }
 
 // 🎯 选择题渲染器
@@ -173,38 +206,37 @@ function renderMultipleChoiceQuizzes() {
         qText.style.fontSize = "16px";
         qText.style.marginBottom = "10px";
         qText.style.color = "#2c3e50";
-        qText.innerHTML = `${q.id}. ${q.question.replace(/\n/g, '<br>')}`;
+        
+        const numSpan = document.createElement('span');
+        numSpan.innerText = `${q.id}. `;
+        qText.appendChild(numSpan);
+        qText.appendChild(renderInteractiveQuizParts(q.question));
         qBox.appendChild(qText);
 
         const optionsBox = document.createElement('div');
         optionsBox.className = "options-group";
         
-        let pureContents = q.options.map(opt => opt.replace(/^[A-D]\s+/, "").trim());
-        let shuffledContents = [...pureContents].sort(() => Math.random() - 0.5);
+        let shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+        const staticLetters = ["A", "B", "C", "D"];
 
-        const prefixes = ["A", "B", "C", "D"];
-
-        shuffledContents.forEach((content, index) => {
-            const prefix = prefixes[index];
-            let finalOptText = `${prefix} ${content}`; 
+        shuffledOptions.forEach((opt, index) => {
+            const currentLetter = staticLetters[index]; 
 
             const btn = document.createElement('button');
-            btn.innerText = finalOptText;
             btn.className = "quiz-choice-btn";
             
-            const originalMatch = q.options.find(o => {
-                const cleanedO = o.replace(/^[A-D]\s+/, "").replace(/[。.]$/, "").trim();
-                const cleanedContent = content.replace(/[。.]$/, "").trim();
-                return cleanedO === cleanedContent;
-            }) || q.options[0]; 
+            btn.appendChild(renderInteractiveQuizParts(currentLetter + " "));
+            btn.appendChild(renderInteractiveQuizParts(opt.content));
+            
+            btn.setAttribute("data-original-letter", opt.letter); 
+            btn.setAttribute("data-current-letter", currentLetter);
 
-            btn.setAttribute("data-original-text", originalMatch);
-            const btnLetter = originalMatch ? originalMatch.trim().charAt(0) : "A"; 
-
-            if (isTeacherMode && btnLetter === q.answer) {
-                btn.innerText = finalOptText + "  (⭐ 答案)";
-                btn.style.color = "#e67e22"; 
-                btn.style.fontWeight = "bold";
+            if (isTeacherMode && opt.letter === q.answer) {
+                const starSpan = document.createElement('span');
+                starSpan.innerText = "  (⭐ 答案)";
+                starSpan.style.color = "#e67e22";
+                starSpan.style.fontWeight = "bold";
+                btn.appendChild(starSpan);
             }
 
             btn.style.display = "block";
@@ -219,33 +251,30 @@ function renderMultipleChoiceQuizzes() {
             btn.style.fontSize = "14px";
             btn.style.transition = "all 0.1s";
 
+            btn.querySelectorAll('ruby').forEach(r => {
+                r.addEventListener('click', (e) => { if(btn.disabled) e.stopPropagation(); });
+            });
+
             btn.onmouseenter = () => { if(!btn.classList.contains('selected') && !btn.disabled) btn.style.background = "#f5f6fa"; };
             btn.onmouseleave = () => { if(!btn.classList.contains('selected') && !btn.disabled) btn.style.background = "#fff"; };
 
-            btn.onclick = () => {
+            btn.onclick = (e) => {
+                if (e.target.tagName === 'RUBY' || e.target.tagName === 'RT') return;
+
                 Array.from(optionsBox.children).forEach(b => {
                     b.classList.remove('selected');
                     b.style.background = "#fff";
                     b.style.borderColor = "#dcdde1";
-                    const bOrig = b.getAttribute("data-original-text");
-                    if (isTeacherMode && bOrig && bOrig.trim().charAt(0) === q.answer) {
-                        b.style.color = "#e67e22";
-                        b.style.fontWeight = "bold";
-                    } else {
-                        b.style.color = "inherit";
-                        b.style.fontWeight = "normal";
-                    }
                     b.style.boxShadow = "none";
                 });
 
                 btn.classList.add('selected');
                 btn.style.background = "#f0f8ff";          
                 btn.style.borderColor = "#2980b9";         
-                btn.style.color = "#2980b9";               
                 btn.style.fontWeight = "700";              
                 btn.style.boxShadow = "0 4px 15px rgba(41, 128, 185, 0.15)"; 
 
-                userSelectedAnswers[q.id] = finalOptText;
+                userSelectedAnswers[q.id] = opt.letter; 
             };
             optionsBox.appendChild(btn);
         });
@@ -270,7 +299,7 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器：盲改盲判，绝不提前剧透正确答案
+// 🚀 全局结算批改器
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -285,44 +314,31 @@ function submitAllAnswers() {
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         const buttons = qBox.querySelectorAll('.quiz-choice-btn');
-        const studentOptText = userSelectedAnswers[q.id];
-
-        let selectedBtn = null;
-        buttons.forEach(btn => {
-            if (btn.innerText === studentOptText || btn.innerText.startsWith(studentOptText.substring(0, 5))) { 
-                selectedBtn = btn; 
-            }
-        });
-
-        const studentOriginalText = selectedBtn ? selectedBtn.getAttribute("data-original-text") : "";
-        const studentLetter = studentOriginalText ? studentOriginalText.trim().charAt(0) : "";
+        const studentLetter = userSelectedAnswers[q.id];
 
         buttons.forEach(btn => {
             btn.disabled = true; 
-            const btnOriginalText = btn.getAttribute("data-original-text");
-            const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
+            const origLetter = btn.getAttribute("data-original-letter");
 
             btn.style.background = "#fff";
-            btn.style.color = "inherit";
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
-            btn.style.paddingLeft = "15px"; 
 
-            // 💡 只有学生刚好猜对的那一项变绿挂 ✅
-            if (btn === selectedBtn) {
+            if (origLetter === studentLetter) {
                 if (studentLetter === q.answer) {
                     btn.style.background = "#2ecc71";
-                    btn.style.color = "white";
                     btn.style.borderColor = "#2ecc71";
-                    btn.style.fontWeight = "bold";
-                    btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅"; 
-                } else {
-                    // 如果猜错了，只挂 ❌ 变红
-                    btn.style.background = "#e74c3c";
                     btn.style.color = "white";
+                    const checkSpan = document.createElement('span');
+                    checkSpan.innerText = "  ✅";
+                    btn.appendChild(checkSpan);
+                } else {
+                    btn.style.background = "#e74c3c";
                     btn.style.borderColor = "#e74c3c";
-                    btn.style.fontWeight = "bold";
-                    btn.innerText = btn.innerText + "  ❌"; 
+                    btn.style.color = "white";
+                    const crossSpan = document.createElement('span');
+                    crossSpan.innerText = "  ❌";
+                    btn.appendChild(crossSpan);
                 }
             }
         });
@@ -347,7 +363,6 @@ function submitAllAnswers() {
     actionGroup.style.justifyContent = "center";
     actionGroup.style.gap = "15px";
 
-    // A. 重新挑战按钮
     const retryBtn = document.createElement("button");
     retryBtn.innerText = "🔄 重新挑战一把";
     retryBtn.style.padding = "12px 25px";
@@ -355,13 +370,11 @@ function submitAllAnswers() {
     retryBtn.style.color = "white";
     retryBtn.style.border = "none";
     retryBtn.style.borderRadius = "25px";
-    retryBtn.style.fontSize = "15px";
     retryBtn.style.fontWeight = "bold";
     retryBtn.style.cursor = "pointer";
     retryBtn.onclick = () => { renderMultipleChoiceQuizzes(); }; 
     actionGroup.appendChild(retryBtn);
 
-    // B. 查看答案按钮
     const showAnsBtn = document.createElement("button");
     showAnsBtn.innerText = "📖 查看正确答案";
     showAnsBtn.style.padding = "12px 25px";
@@ -369,14 +382,13 @@ function submitAllAnswers() {
     showAnsBtn.style.color = "white";
     showAnsBtn.style.border = "none";
     showAnsBtn.style.borderRadius = "25px";
-    showAnsBtn.style.fontSize = "15px";
     showAnsBtn.style.fontWeight = "bold";
     showAnsBtn.style.cursor = "pointer";
     showAnsBtn.onclick = () => {
         showAnsBtn.disabled = true;
         showAnsBtn.style.background = "#95a5a6";
         showAnsBtn.innerText = "答案已在选项中标记";
-        revealCorrectOptionsDirectly(); // 🌟 触发直接选项内变绿挂 ✅
+        revealCorrectOptionsDirectly(); 
     };
     actionGroup.appendChild(showAnsBtn);
 
@@ -384,50 +396,39 @@ function submitAllAnswers() {
     resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-// 🌟【新升级功能】：点击后直接将正确按钮染绿并追加 ✅，不生成任何文字信息卡
 function revealCorrectOptionsDirectly() {
-    let currentCorrectLetterOnPage = "";
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         if (!qBox) return;
-
         const buttons = qBox.querySelectorAll('.quiz-choice-btn');
 
         buttons.forEach(btn => {
-            const btnOriginalText = btn.getAttribute("data-original-text");
-            const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
-            
-            // 锁定洗牌后的正确答案按钮
-            if (btnLetter === q.answer) {
-                currentCorrectLetterOnPage = btn.innerText.trim().charAt(0);
-                
-                // 强制将选项直接染绿并加粗
+            const origLetter = btn.getAttribute("data-original-letter");
+            if (origLetter === q.answer) {
                 btn.style.background = "#2ecc71";
-                btn.style.color = "white";
                 btn.style.borderColor = "#2ecc71";
+                btn.style.color = "white";
                 btn.style.fontWeight = "bold";
-                
-                // 智能去教师重置，并挂上勾
-                const cleanText = btn.innerText.replace("  (⭐ 答案)", "");
-                if (!cleanText.includes("✅")) {
-                    btn.innerText = cleanText + "  ✅";
+                if (!btn.innerText.includes("✅")) {
+                    const checkSpan = document.createElement('span');
+                    checkSpan.innerText = "  ✅";
+                    btn.appendChild(checkSpan);
                 }
             }
         });
-
-        // 👨‍🏫 顺便同步刷新教师模式下最底部的剖析代号提示
-        if (isTeacherMode && q.analysis) {
-            const analysisBox = qBox.querySelector('div[style*="border-left: 4px solid rgb(155, 89, 182)"]');
-            if (analysisBox) {
-                analysisBox.innerHTML = `<strong>📐 考点剖析 <span style="color:#e67e22;">[ 本次测试正确选项为：${currentCorrectLetterOnPage} ]</span>：</strong>${q.analysis}`;
-            }
-        }
     });
 }
 
 // ==================== 🛠 *字词字典弹窗及生词本核心逻辑* ============================
 function openPop(el, i) {
-    currentIdx = i; const d = lessonData[i];
+    let d = null;
+    if (currentDataType === 'lesson') {
+        currentIdx = i; d = lessonData[i];
+    } else {
+        d = currentQuizWordData;
+        currentIdx = -1; 
+    }
+    
     if (!d) return;
     document.getElementById('popWord').innerText = d[0];
     document.getElementById('popPinyin').innerText = `[${d[1]}]`;
@@ -455,7 +456,7 @@ function openPop(el, i) {
 
 function saveToNotebook(e) { 
     e.stopPropagation(); 
-    if (!saved.includes(currentIdx)) { 
+    if (currentIdx !== -1 && !saved.includes(currentIdx)) { 
         saved.push(currentIdx); 
         localStorage.setItem('saved_104', JSON.stringify(saved)); 
         renderNB(); 
@@ -465,6 +466,7 @@ function saveToNotebook(e) {
     setTimeout(() => btn.innerText = "Copy 📋", 1000); 
 }
 
+// 🌟【新升级生词本渲染】：动态挂载独立删除按钮 `×` 
 function renderNB() { 
     const list = document.getElementById('notebookList'); 
     if (!list) return;
@@ -475,9 +477,58 @@ function renderNB() {
         saved.forEach(idx => { 
             const item = lessonData[idx]; 
             if(!item) return; 
+            
+            // 创建生词小卡片
             const div = document.createElement("div"); 
             div.className = "notebook-item"; 
-            div.innerText = item[0]; 
+            div.style.display = "inline-flex";
+            div.style.alignItems = "center";
+            div.style.gap = "8px";
+            div.style.padding = "6px 12px 6px 16px"; // 调整内边距让叉叉有独立空间
+            
+            // 文字节点
+            const textSpan = document.createElement("span");
+            textSpan.innerText = item[0];
+            div.appendChild(textSpan);
+
+            // ❌ 独立删除小叉叉按钮
+            const deleteBtn = document.createElement("span");
+            deleteBtn.innerText = "×";
+            deleteBtn.style.cursor = "pointer";
+            deleteBtn.style.fontWeight = "bold";
+            deleteBtn.style.fontSize = "16px";
+            deleteBtn.style.color = "#95a5a6";
+            deleteBtn.style.transition = "color 0.2s";
+            deleteBtn.style.padding = "0 4px";
+            
+            // 悬停变红视觉特效
+            deleteBtn.onmouseenter = () => deleteBtn.style.color = "#e74c3c";
+            deleteBtn.onmouseleave = () => deleteBtn.style.color = "#95a5a6";
+
+            // 🎯 精准删除核心逻辑
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation(); // 🌟 拦截冒泡，防止触发生词卡片的定位滚动事件
+                
+                // 从缓存数组中剔除这单个索引
+                saved = saved.filter(savedIdx => savedIdx !== idx);
+                
+                // 同步更新到浏览器的 LocalStorage 本地存储
+                localStorage.setItem('saved_104', JSON.stringify(saved));
+                
+                // 实时重刷生词本和词汇游戏面板
+                renderNB();
+                if(document.getElementById('gameContainer').style.display === 'block') {
+                    if (saved.length < 1) {
+                        document.getElementById('gameContainer').style.display = 'none';
+                        document.getElementById('gameToggleBtn').innerText = "🎯 生词测试";
+                    } else {
+                        startQuizGame();
+                    }
+                }
+            };
+            div.appendChild(deleteBtn);
+
+            // 卡片本身的点击事件：平滑滚动定位回课文
             div.onclick = (e) => { 
                 e.stopPropagation(); 
                 const target = document.querySelector(`ruby[data-word-index="${idx}"]`); 
@@ -486,6 +537,7 @@ function renderNB() {
                     document.querySelectorAll('ruby').forEach(r => r.classList.remove('is-active')); 
                     setTimeout(() => { 
                         target.classList.add('is-active'); 
+                        currentDataType = 'lesson';
                         openPop(target, idx); 
                     }, 500); 
                 } 
