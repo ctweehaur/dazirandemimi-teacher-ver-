@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (固定按钮 ABCD + 智能擦除数据前缀版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (标准答案严格对齐对账版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -158,7 +158,7 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器（固定物理大按钮 ABCD 前缀 + 智能过滤原库文本内置前缀）
+// 🎯 选择题渲染器（终极修复：严格将老师模式标注、学生选择与 questions.js 原始数据字母对账）
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -201,36 +201,44 @@ function renderMultipleChoiceQuizzes() {
         const optionsBox = document.createElement('div');
         optionsBox.className = "options-group";
         
-        let shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-        const staticLetters = ["A", "B", "C", "D"]; // 🌟 物理面板行首永远按 ABCD 严格排序
-
-        shuffledOptions.forEach((opt, index) => {
-            const currentLetter = staticLetters[index]; // 拿当前物理行首固定的字母（A、B、C 或 D）
-            
-            let textToShow = "";
-            let originalLetter = currentLetter; 
+        // 🌟 核心修复点1：在打乱顺序前，先明确并死死保住每一个选项原配的字母 (A/B/C/D)
+        let processedOptions = q.options.map((opt, oIdx) => {
+            const letters = ["A", "B", "C", "D"];
+            let originalLetter = letters[oIdx]; // 默认按索引分配
+            let contentText = "";
 
             if (typeof opt === 'string') {
-                textToShow = opt; 
+                contentText = opt;
             } else if (opt && typeof opt === 'object') {
-                textToShow = opt.content || opt.text || ""; 
-                if (opt.letter) originalLetter = opt.letter; 
+                contentText = opt.content || opt.text || "";
+                if (opt.letter) originalLetter = opt.letter; // 如果原数据指定了 letter，以原数据为准
             }
+            return { originalLetter: originalLetter.toUpperCase(), contentText: contentText };
+        });
 
-            // 🎯 【智能除渣核心】：用正则把原文本最开头的 "A.", "A ", "A、" 干净切掉，防双重叠加
-            textToShow = textToShow.replace(/^[A-DDa-d][\s\.\、\s]*/, "").trim();
+        // 开始乱序洗牌
+        let shuffledOptions = [...processedOptions].sort(() => Math.random() - 0.5);
+        const staticDisplayLetters = ["A", "B", "C", "D"]; // 网页前端物理按钮固定的行首 ABCD
 
-            // 🌟 强行组装：外面固定按ABCD排序，里面拼接干净剥离后的核心句子
-            const finalOptText = `${currentLetter}. ${textToShow}`;
+        shuffledOptions.forEach((opt, index) => {
+            const currentDisplayLetter = staticDisplayLetters[index]; // 当前按钮前端显示的物理前缀
+            
+            // 智能擦除句子原生的 "A.", "B " 等前缀，防止双重重叠
+            let cleanText = opt.contentText.replace(/^[A-DDa-d][\s\.\、\s]*/, "").trim();
+
+            // 强行组装：行首顺序铁定是固定的 A. B. C. D. 
+            const finalOptText = `${currentDisplayLetter}. ${cleanText}`;
 
             const btn = document.createElement('button');
             btn.className = "quiz-choice-btn";
             btn.innerText = finalOptText;
             
-            btn.setAttribute("data-original-letter", originalLetter); 
-            btn.setAttribute("data-current-letter", currentLetter);
+            // 🌟 核心修复点2：将 data-original-letter 死死绑定为原数据里的真实答案代号！
+            btn.setAttribute("data-original-letter", opt.originalLetter); 
+            btn.setAttribute("data-current-letter", currentDisplayLetter);
 
-            if (isTeacherMode && originalLetter === q.answer) {
+            // 🌟 核心修复点3：教师模式答案标注，严格根据原数据的 originalLetter 与 q.answer 比对！
+            if (isTeacherMode && opt.originalLetter === q.answer.toUpperCase()) {
                 btn.innerText = finalOptText + "  (⭐ 答案)";
                 btn.style.color = "#e67e22";
                 btn.style.fontWeight = "bold";
@@ -257,7 +265,7 @@ function renderMultipleChoiceQuizzes() {
                     b.style.background = "#fff";
                     b.style.borderColor = "#dcdde1";
                     const bOrig = b.getAttribute("data-original-letter");
-                    if (isTeacherMode && bOrig === q.answer) {
+                    if (isTeacherMode && bOrig === q.answer.toUpperCase()) {
                         b.style.color = "#e67e22";
                         b.style.fontWeight = "bold";
                     } else {
@@ -273,7 +281,8 @@ function renderMultipleChoiceQuizzes() {
                 btn.style.fontWeight = "700";              
                 btn.style.boxShadow = "0 4px 15px rgba(41, 128, 185, 0.15)"; 
 
-                userSelectedAnswers[q.id] = originalLetter; 
+                // 记录学生选的原始答案字母
+                userSelectedAnswers[q.id] = opt.originalLetter; 
             };
             optionsBox.appendChild(btn);
         });
@@ -298,6 +307,7 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
+// 🚀 全局结算批改器
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -312,19 +322,20 @@ function submitAllAnswers() {
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         const buttons = qBox.querySelectorAll('.quiz-choice-btn');
-        const studentLetter = userSelectedAnswers[q.id];
+        const studentOriginalLetter = userSelectedAnswers[q.id];
+        const correctStandardAnswer = q.answer.toUpperCase();
 
         buttons.forEach(btn => {
             btn.disabled = true; 
-            const origLetter = btn.getAttribute("data-original-letter");
+            const btnOrigLetter = btn.getAttribute("data-original-letter");
 
             btn.style.background = "#fff";
             btn.style.color = "inherit";
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
 
-            if (origLetter === studentLetter) {
-                if (studentLetter === q.answer) {
+            if (btnOrigLetter === studentOriginalLetter) {
+                if (studentOriginalLetter === correctStandardAnswer) {
                     btn.style.background = "#2ecc71";
                     btn.style.borderColor = "#2ecc71";
                     btn.style.color = "white";
@@ -340,7 +351,7 @@ function submitAllAnswers() {
             }
         });
 
-        if (studentLetter === q.answer) { score++; }
+        if (studentOriginalLetter === correctStandardAnswer) { score++; }
     });
 
     const resultBox = document.getElementById('quizResultScore');
@@ -398,11 +409,12 @@ function revealCorrectOptionsDirectly() {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         if (!qBox) return;
         const buttons = qBox.querySelectorAll('.quiz-choice-btn');
+        const correctStandardAnswer = q.answer.toUpperCase();
 
         buttons.forEach(btn => {
-            const origLetter = btn.getAttribute("data-original-letter");
+            const btnOrigLetter = btn.getAttribute("data-original-letter");
             
-            if (origLetter === q.answer) {
+            if (btnOrigLetter === correctStandardAnswer) {
                 btn.style.background = "#2ecc71";
                 btn.style.borderColor = "#2ecc71";
                 btn.style.color = "white";
