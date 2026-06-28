@@ -1,9 +1,10 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (纯净题目+极简答案标记版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (大标题矩阵化精准对齐版)
 // ==========================================================================
 
 let currentIdx = -1; 
 let currentDataType = 'lesson'; 
+let currentQuizWordData = null;  // 临时存储大标题中点击的专用词汇数据
 let saved = JSON.parse(localStorage.getItem('saved_104')) || [];
 let quizData = [];
 let currentQuizIdx = 0;
@@ -12,36 +13,44 @@ let userSelectedAnswers = {};
 let isTeacherMode = false;    
 
 window.onload = function() {
-    // 🎯 课文大标题互动渲染引擎 (完美支持 data.js 里大自然的和秘密连在一起的数组写法)
+    // 🎯 课文大标题全矩阵渲染引擎：完全遵循您在 data.js 里写的专属生词包数据
     const titleEl = document.getElementById('articleTitle');
     if (titleEl && typeof lessonTitle !== 'undefined') {
         titleEl.innerHTML = ""; 
         
         if (Array.isArray(lessonTitle)) {
-            // 将大标题转化为带字典弹窗的互动节点
             lessonTitle.forEach(item => {
                 if (typeof item === 'string') {
+                    // 普通字符串字眼（如：“的”）
                     const span = document.createElement('span');
                     span.innerText = item;
                     titleEl.appendChild(span);
                 } else if (Array.isArray(item)) {
+                    // 🌟 课文标题中和正文格式完全一样的生词包：["字", "拼音", "英文", "马来文"]
                     const rubyEl = document.createElement('ruby');
                     rubyEl.innerHTML = `${item[0]}<rt>${item[1]}</rt>`;
                     rubyEl.style.cursor = "pointer";
+                    
                     rubyEl.onclick = (e) => {
                         e.stopPropagation();
                         document.querySelectorAll('ruby').forEach(x => x.classList.remove('is-active'));
                         rubyEl.classList.add('is-active');
-                        currentDataType = 'lesson'; 
-                        openPop(e.currentTarget, lessonData.findIndex(d => d[0] === item[0]));
+                        
+                        currentDataType = 'quiz'; // 借用习题独立弹窗通道
+                        currentQuizWordData = item; // 注入独立数据
+                        openPop(e.currentTarget, null);
                     };
                     titleEl.appendChild(rubyEl);
                 }
             });
+            
+            // 同步网页顶部的标签页标题
+            const pureText = lessonTitle.map(item => Array.isArray(item) ? item[0] : item).join("");
+            document.title = pureText;
         } else {
             titleEl.innerText = lessonTitle;
+            document.title = lessonTitle;
         }
-        document.title = titleEl.innerText;
     }
 
     if (typeof lessonData !== 'undefined') { 
@@ -157,7 +166,7 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器 (回归纯净文本渲染，完全防止生词和按钮点选事件冲突)
+// 🎯 选择题渲染器 (纯净无拼音防干扰版)
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -282,13 +291,13 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器：盲改盲判，提交时只反馈学生选的那一项对错
+// 🚀 全局结算批改器
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
 
     if (answeredCount < totalQuestions) {
-        alert(`⚠️ 老师发现你还有未填完的习题哦！目前完成了 (${answeredCount} / ${totalQuestions}) 题。`);
+        alert(`⚠️ 老师发现 you 还有未填完的习题哦！目前完成了 (${answeredCount} / ${totalQuestions}) 题。`);
         return;
     }
 
@@ -308,7 +317,6 @@ function submitAllAnswers() {
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
 
-            // 提交时，只在学生点的那一项亮起绿 ✅ 或红 ❌
             if (origLetter === studentLetter) {
                 if (studentLetter === q.answer) {
                     btn.style.background = "#2ecc71";
@@ -377,7 +385,6 @@ function submitAllAnswers() {
     resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-// 🌟【极简查答案】：点击后直接将正确按钮染绿并追加 ✅
 function revealCorrectOptionsDirectly() {
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
@@ -402,10 +409,17 @@ function revealCorrectOptionsDirectly() {
 
 // ==================== 🛠 *字词字典弹窗及生词本核心逻辑* ============================
 function openPop(el, i) {
-    if (i === -1 || !lessonData[i]) return;
-    currentIdx = i; 
-    const d = lessonData[i];
+    let d = null;
+    if (currentDataType === 'lesson') {
+        if (i === -1 || !lessonData[i]) return;
+        currentIdx = i; d = lessonData[i];
+    } else {
+        // 如果点击大标题的自定义矩阵，完美调取专属词包
+        d = currentQuizWordData;
+        currentIdx = -1; // 标题自定词汇手滑点错不需要同步进入正文生词本
+    }
     
+    if (!d) return;
     document.getElementById('popWord').innerText = d[0];
     document.getElementById('popPinyin').innerText = `[${d[1]}]`;
     document.getElementById('popEn').innerText = d[2]; 
@@ -442,7 +456,6 @@ function saveToNotebook(e) {
     setTimeout(() => btn.innerText = "Copy 📋", 1000); 
 }
 
-// 🌟【生词本微件】：支持独立叉叉单个精准剔除错词
 function renderNB() { 
     const list = document.getElementById('notebookList'); 
     if (!list) return;
@@ -465,7 +478,6 @@ function renderNB() {
             textSpan.innerText = item[0];
             div.appendChild(textSpan);
 
-            // ❌ 独立精准删除叉叉
             const deleteBtn = document.createElement("span");
             deleteBtn.innerText = "×";
             deleteBtn.style.cursor = "pointer";
@@ -479,7 +491,7 @@ function renderNB() {
             deleteBtn.onmouseleave = () => deleteBtn.style.color = "#95a5a6";
 
             deleteBtn.onclick = (e) => {
-                e.stopPropagation(); // 彻底切断冒泡，绝对不干扰底层的课文平滑滚动定位
+                e.stopPropagation(); 
                 saved = saved.filter(savedIdx => savedIdx !== idx);
                 localStorage.setItem('saved_104', JSON.stringify(saved));
                 renderNB();
@@ -495,7 +507,6 @@ function renderNB() {
             };
             div.appendChild(deleteBtn);
 
-            // 点击中文字体区域，依旧丝滑返回并高亮正文
             div.onclick = (e) => { 
                 e.stopPropagation(); 
                 const target = document.querySelector(`ruby[data-word-index="${idx}"]`); 
