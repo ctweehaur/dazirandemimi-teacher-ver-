@@ -551,7 +551,7 @@ const lessonData = [
     ["外面", "wài mian", "outside", "luar / keadaan luar"],
     ["的", "de", "particle", "yang"],
     ["环境", "huán jìng", "environment / surroundings", "persekitaran / keadaan"],
-    ["慢", "hěn", "very", "sangat / amat"],
+    ["很", "hěn", "very", "sangat / amat"],
     ["安全", "ān quán", "safe", "selamat"],
     ["，", "", "", ""],
     ["于是", "yú shì", "so / therefore", "maka / oleh itu"],
