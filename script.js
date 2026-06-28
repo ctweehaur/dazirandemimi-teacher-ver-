@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (含提交后重做/看答案功能)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (纯净盲改+极简答案揭晓版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -98,7 +98,7 @@ function render() {
             paragraphElement.insertBefore(s, paragraphElement.firstChild); 
             cnt.appendChild(paragraphElement);
 
-            // 👨‍🏫 教师模式特权：若配有赏析文本，则在段落下方动态塞入一个优雅的浅绿茶色赏析面板
+            // 👨‍🏫 教师模式特权
             if (isTeacherMode && typeof lessonAppreciation !== 'undefined' && lessonAppreciation[pNum - 1]) {
                 const appBox = document.createElement("div");
                 appBox.style.background = "#f4f9f4";
@@ -146,15 +146,10 @@ function renderMultipleChoiceQuizzes() {
     container.innerHTML = "";
     section.style.display = "block"; 
     
-    // 初始化状态
     userSelectedAnswers = {};
     const resultScore = document.getElementById('quizResultScore');
-    if (resultScore) {
-        resultScore.style.display = "none";
-        resultScore.innerHTML = "";
-    }
+    if (resultScore) { resultScore.style.display = "none"; resultScore.innerHTML = ""; }
     
-    // 恢复原始提交检查按钮状态
     const submitBtn = document.getElementById('submitQuizBtn');
     if (submitBtn) {
         submitBtn.style.display = "inline-block";
@@ -163,7 +158,6 @@ function renderMultipleChoiceQuizzes() {
         submitBtn.innerText = "提交检查 🚀";
     }
 
-    // 清理可能残存的重做与看答案按钮组盒子
     const oldActionGroup = document.getElementById('postQuizActionGroup');
     if (oldActionGroup) oldActionGroup.remove();
 
@@ -205,7 +199,6 @@ function renderMultipleChoiceQuizzes() {
             }) || q.options[0]; 
 
             btn.setAttribute("data-original-text", originalMatch);
-
             const btnLetter = originalMatch ? originalMatch.trim().charAt(0) : "A"; 
 
             if (isTeacherMode && btnLetter === q.answer) {
@@ -277,7 +270,7 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器：一次性核对并显现 ✅ ❌
+// 🚀 全局结算批改器：盲改盲判，绝不提前剧透正确答案是哪一个
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -305,49 +298,48 @@ function submitAllAnswers() {
         const studentLetter = studentOriginalText ? studentOriginalText.trim().charAt(0) : "";
 
         buttons.forEach(btn => {
-            btn.disabled = true; 
+            btn.disabled = true; // 锁定
             const btnOriginalText = btn.getAttribute("data-original-text");
             const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
 
+            // 清理状态
             btn.style.background = "#fff";
             btn.style.color = "inherit";
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
             btn.style.paddingLeft = "15px"; 
 
-            if (btnLetter === q.answer) {
-                btn.style.background = "#2ecc71";
-                btn.style.color = "white";
-                btn.style.borderColor = "#2ecc71";
-                btn.style.fontWeight = "bold";
-                const baseText = btn.innerText.replace("  (⭐ 答案)", "");
-                btn.innerText = baseText + "  ✅"; 
-            }
-            
-            if (btn === selectedBtn && studentLetter !== q.answer) {
-                btn.style.background = "#e74c3c";
-                btn.style.color = "white";
-                btn.style.borderColor = "#e74c3c";
-                btn.style.fontWeight = "bold";
-                btn.innerText = btn.innerText + "  ❌"; 
+            // 💡 【改动核心】：提交后，正确选项不再直接变绿！只有当学生刚好猜对时，该选项挂上 ✅ 并显示绿色
+            if (btn === selectedBtn) {
+                if (studentLetter === q.answer) {
+                    btn.style.background = "#2ecc71";
+                    btn.style.color = "white";
+                    btn.style.borderColor = "#2ecc71";
+                    btn.style.fontWeight = "bold";
+                    btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅"; 
+                } else {
+                    // 如果猜错了，仅仅把选错的挂上 ❌ 变红，不把正确的暴露给学生
+                    btn.style.background = "#e74c3c";
+                    btn.style.color = "white";
+                    btn.style.borderColor = "#e74c3c";
+                    btn.style.fontWeight = "bold";
+                    btn.innerText = btn.innerText + "  ❌"; 
+                }
             }
         });
 
         if (studentLetter === q.answer) { score++; }
     });
 
-    // 显现最终得分公告
     const resultBox = document.getElementById('quizResultScore');
     if (resultBox) {
         resultBox.style.display = "block";
         resultBox.innerHTML = `🎉 批改完成！您的最终得分是：<span style="font-size: 24px; color: #e67e22;">${score}</span> / ${totalQuestions} 分`;
     }
     
-    // 隐藏传统的单独提交按钮
     const submitBtn = document.getElementById('submitQuizBtn');
     if (submitBtn) submitBtn.style.display = "none";
 
-    // 🌟【核心增改】：动态生成“重新挑战”与“查看答案解析”双向交互选择按钮组
     const btnCenter = submitBtn.parentNode;
     const actionGroup = document.createElement("div");
     actionGroup.id = "postQuizActionGroup";
@@ -367,12 +359,12 @@ function submitAllAnswers() {
     retryBtn.style.fontSize = "15px";
     retryBtn.style.fontWeight = "bold";
     retryBtn.style.cursor = "pointer";
-    retryBtn.onclick = () => { renderMultipleChoiceQuizzes(); }; // 一键还原并洗牌重刷
+    retryBtn.onclick = () => { renderMultipleChoiceQuizzes(); }; 
     actionGroup.appendChild(retryBtn);
 
-    // B. 查看答案解析按钮
+    // B. 查看答案按钮
     const showAnsBtn = document.createElement("button");
-    showAnsBtn.innerText = "📖 查看详细答案解析";
+    showAnsBtn.innerText = "📖 查看正确答案";
     showAnsBtn.style.padding = "12px 25px";
     showAnsBtn.style.background = "#2ecc71";
     showAnsBtn.style.color = "white";
@@ -384,8 +376,8 @@ function submitAllAnswers() {
     showAnsBtn.onclick = () => {
         showAnsBtn.disabled = true;
         showAnsBtn.style.background = "#95a5a6";
-        showAnsBtn.innerText = "解析已全面展开";
-        revealExplanationsCard(); // 触发全卷深度订正提示卡浮现
+        showAnsBtn.innerText = "答案已揭晓";
+        revealExplanationsCardOnly(); // 仅仅揭晓答案代号，切除纯文字解析
     };
     actionGroup.appendChild(showAnsBtn);
 
@@ -393,8 +385,8 @@ function submitAllAnswers() {
     resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-// 🌟【新功能辅助】：全面铺开渲染订正反馈卡
-function revealExplanationsCard() {
+// 🌟【极简功能】：点击后只给干净的正确选项字母，不给任何解析
+function revealExplanationsCardOnly() {
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         if (!qBox) return;
@@ -407,23 +399,30 @@ function revealExplanationsCard() {
             const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
             if (btnLetter === q.answer) {
                 currentCorrectLetterOnPage = btn.innerText.trim().charAt(0);
+                
+                // 同时顺便把正确选项的按钮颜色给染绿，双重视觉加持
+                btn.style.background = "#2ecc71";
+                btn.style.color = "white";
+                btn.style.borderColor = "#2ecc71";
+                btn.style.fontWeight = "bold";
+                if (!btn.innerText.includes("✅")) {
+                    btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅";
+                }
             }
         });
 
-        // 检查是否已经生成过，防止重复点击生成
         let existCard = qBox.querySelector('.dynamic-explanation-card');
         if (!existCard) {
             const feedBox = document.createElement("div");
             feedBox.className = "dynamic-explanation-card";
             feedBox.style.background = "#f4fdf7";
             feedBox.style.borderLeft = "4px solid #2ecc71";
-            feedBox.style.padding = "12px 15px";
-            feedBox.style.marginTop = "15px";
+            feedBox.style.padding = "10px 15px";
+            feedBox.style.marginTop = "10px";
             feedBox.style.fontSize = "14px";
             feedBox.style.color = "#27ae60";
             feedBox.style.borderRadius = "4px";
-            feedBox.style.lineHeight = "1.6";
-            feedBox.innerHTML = `<strong>💡 本题正确答案是：<span style="font-size: 16px; color: #e67e22;">[ ${currentCorrectLetterOnPage} 选项 ]</span></strong><br><span style="color:#666; font-size:13px;">${q.analysis || '暂无深度解析。'}</span>`;
+            feedBox.innerHTML = `<strong>💡 本题正确答案是：<span style="font-size: 16px; color: #e67e22;">[ ${currentCorrectLetterOnPage} 选项 ]</span></strong>`;
             qBox.appendChild(feedBox);
         }
     });
