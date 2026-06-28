@@ -1,10 +1,10 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (自适应完美排错版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (固定按钮 ABCD + 智能擦除数据前缀版)
 // ==========================================================================
 
 let currentIdx = -1; 
 let currentDataType = 'lesson'; 
-let currentQuizWordData = null;  // 临时存储大标题中点击的专用词汇数据
+let currentQuizWordData = null;  
 let saved = JSON.parse(localStorage.getItem('saved_104')) || [];
 let quizData = [];
 let currentQuizIdx = 0;
@@ -13,7 +13,6 @@ let userSelectedAnswers = {};
 let isTeacherMode = false;    
 
 window.onload = function() {
-    // 🎯 课文大标题全矩阵渲染引擎：完全遵循您在 data.js 里写的专属生词包数据
     const titleEl = document.getElementById('articleTitle');
     if (titleEl && typeof lessonTitle !== 'undefined') {
         titleEl.innerHTML = ""; 
@@ -21,12 +20,10 @@ window.onload = function() {
         if (Array.isArray(lessonTitle)) {
             lessonTitle.forEach(item => {
                 if (typeof item === 'string') {
-                    // 普通字符串字眼（如：“的”）
                     const span = document.createElement('span');
                     span.innerText = item;
                     titleEl.appendChild(span);
                 } else if (Array.isArray(item)) {
-                    // 🌟 课文标题互动词包：不显示上方拼音，保持界面干净，保留点击字典气泡
                     const rubyEl = document.createElement('ruby');
                     rubyEl.innerHTML = `${item[0]}`; 
                     rubyEl.style.cursor = "pointer";
@@ -35,16 +32,13 @@ window.onload = function() {
                         e.stopPropagation();
                         document.querySelectorAll('ruby').forEach(x => x.classList.remove('is-active'));
                         rubyEl.classList.add('is-active');
-                        
-                        currentDataType = 'quiz'; // 借用习题独立弹窗通道
-                        currentQuizWordData = item; // 注入独立数据
+                        currentDataType = 'quiz'; 
+                        currentQuizWordData = item; 
                         openPop(e.currentTarget, null);
                     };
                     titleEl.appendChild(rubyEl);
                 }
             });
-            
-            // 同步网页顶部的标签页标题
             const pureText = lessonTitle.map(item => Array.isArray(item) ? item[0] : item).join("");
             document.title = pureText;
         } else {
@@ -68,7 +62,6 @@ window.onload = function() {
     });
 };
 
-// 👨‍🏫 教师专用隐藏门验证与切换逻辑
 function toggleTeacherMode() {
     const btn = document.getElementById('teacherModeBtn');
     if (!btn) return;
@@ -92,7 +85,6 @@ function toggleTeacherMode() {
     renderMultipleChoiceQuizzes();
 }
 
-// 📖 正文课文渲染器
 function render() {
     const cnt = document.getElementById('content'); 
     if (!cnt) return;
@@ -166,7 +158,7 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器 (智能自适应防 undefined 增强版)
+// 🎯 选择题渲染器（固定物理大按钮 ABCD 前缀 + 智能过滤原库文本内置前缀）
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -210,23 +202,26 @@ function renderMultipleChoiceQuizzes() {
         optionsBox.className = "options-group";
         
         let shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-        const staticLetters = ["A", "B", "C", "D"];
+        const staticLetters = ["A", "B", "C", "D"]; // 🌟 物理面板行首永远按 ABCD 严格排序
 
         shuffledOptions.forEach((opt, index) => {
-            const currentLetter = staticLetters[index]; 
+            const currentLetter = staticLetters[index]; // 拿当前物理行首固定的字母（A、B、C 或 D）
             
-            // ✨ 核心诊断修复：智能判断选项是普通文本还是复杂对象
             let textToShow = "";
             let originalLetter = currentLetter; 
 
             if (typeof opt === 'string') {
-                textToShow = opt; // 如果是普通文本，直接显示
+                textToShow = opt; 
             } else if (opt && typeof opt === 'object') {
-                textToShow = opt.content || opt.text || ""; // 如果是对象，自适应读取 content 或 text
-                if (opt.letter) originalLetter = opt.letter; // 如果定义了原字母，则同步绑定
+                textToShow = opt.content || opt.text || ""; 
+                if (opt.letter) originalLetter = opt.letter; 
             }
 
-            const finalOptText = `${currentLetter} ${textToShow}`;
+            // 🎯 【智能除渣核心】：用正则把原文本最开头的 "A.", "A ", "A、" 干净切掉，防双重叠加
+            textToShow = textToShow.replace(/^[A-DDa-d][\s\.\、\s]*/, "").trim();
+
+            // 🌟 强行组装：外面固定按ABCD排序，里面拼接干净剥离后的核心句子
+            const finalOptText = `${currentLetter}. ${textToShow}`;
 
             const btn = document.createElement('button');
             btn.className = "quiz-choice-btn";
@@ -303,7 +298,6 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -334,11 +328,13 @@ function submitAllAnswers() {
                     btn.style.background = "#2ecc71";
                     btn.style.borderColor = "#2ecc71";
                     btn.style.color = "white";
+                    btn.style.fontWeight = "bold";
                     btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅";
                 } else {
                     btn.style.background = "#e74c3c";
                     btn.style.borderColor = "#e74c3c";
                     btn.style.color = "white";
+                    btn.style.fontWeight = "bold";
                     btn.innerText = btn.innerText + "  ❌";
                 }
             }
@@ -405,6 +401,7 @@ function revealCorrectOptionsDirectly() {
 
         buttons.forEach(btn => {
             const origLetter = btn.getAttribute("data-original-letter");
+            
             if (origLetter === q.answer) {
                 btn.style.background = "#2ecc71";
                 btn.style.borderColor = "#2ecc71";
