@@ -15,7 +15,7 @@
     --shadow-md: 0 10px 25px rgba(44, 62, 80, 0.05);
 }
 
-/* 🌙 暗黑模式适配 */
+/* 🌙 暗黑模式核心适配 */
 [data-theme="dark"] {
     --bg-color: linear-gradient(135deg, #141414 0%, #202020 100%);
     --text-color: #e0e0e0;
@@ -215,15 +215,16 @@ body {
     border: 1px solid rgba(0,0,0,0.01);
 }
 
-h1 {
+h1, h2 {
     text-align: center;
-    font-size: 32px;
     font-weight: 800;
     margin-top: 0;
-    margin-bottom: 40px;
     color: var(--text-color);
     letter-spacing: 2px;
 }
+
+h1 { font-size: 32px; margin-bottom: 40px; }
+h2 { font-size: 24px; margin-bottom: 25px; text-align: left; } /* “选择题”小标题适配 */
 
 #content p {
     text-align: justify;
@@ -254,7 +255,7 @@ h1 {
     border-color: #4a5568;
 }
 
-/* 🍊 拼音标注（Ruby）极致互动 */
+/* 🍊 拼音标注（Ruby）基础规范 */
 ruby {
     ruby-position: over;
     cursor: pointer;
@@ -274,7 +275,7 @@ ruby:hover, ruby.is-active {
 }
 
 /* 🙈 全篇所有拼音默认隐藏 */
-#content rt {
+#content rt, .quiz-choice-btn rt, div[data-q-id] rt {
     opacity: 0;
     transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
@@ -284,9 +285,8 @@ ruby:hover, ruby.is-active {
     padding-bottom: 5px;
 }
 
-/* 🌟 当鼠标指到（hover）或手机点击激活（.is-active）时拼音浮现 */
-#content ruby:hover rt, 
-#content ruby.is-active rt {
+/* 当鼠标指到或点击激活时拼音浮现 */
+ruby:hover rt, ruby.is-active rt {
     opacity: 1;
 }
 
@@ -385,14 +385,13 @@ ruby:hover, ruby.is-active {
 }
 
 /* ==========================================================================
-   ✨ 10道阅读理解选择题特制高级动态交互美化样式（高强度高亮优化版）
+   ✨ 选择题高级动态交互美化样式
    ========================================================================== */
 .quiz-choice-btn {
     position: relative;
     transition: all 0.15s ease !important;
 }
 
-/* 允许用户在点击时有一个轻微的打击感压陷反馈 */
 .quiz-choice-btn:active:not(:disabled) {
     transform: scale(0.995);
 }
@@ -407,39 +406,57 @@ ruby:hover, ruby.is-active {
     cursor: not-allowed !important;
 }
 
-/* 🌟 日间模式下选中的强效视觉标记（更深色、带平移、加粗金边） */
+/* 🌟 日间模式下选中的强效视觉标记 */
 .quiz-choice-btn.selected {
-    background: #eef7ff !important;            /* 更温润的青浅蓝色底 */
-    border: 2px solid #e67e22 !important;      /* 2px 琥珀金高显边框 */
-    color: #1b4f72 !important;                  /* 深孔雀蓝字体 */
-    font-weight: 800 !important;               /* 字重开到最大 */
-    padding-left: 25px !important;             /* 被选中的选项自动向右平移，造成段落感错落 */
-    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.25) !important; /* 琥珀金发光阴影 */
+    background: #eef7ff !important;            
+    border: 2px solid #e67e22 !important;      
+    color: #1b4f72 !important;                  
+    font-weight: 800 !important;               
+    padding-left: 25px !important;             
+    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.25) !important; 
 }
 
-/* 🌟 🌙 暗黑模式下选中的强效视觉标记 */
+/* 🌟 🌙 暗黑模式下的选中的视觉标记 */
 [data-theme="dark"] .quiz-choice-btn.selected {
-    background: #1c2833 !important;            /* 沉稳黑蓝色暗底 */
-    border: 2px solid #f39c12 !important;      /* 荧光金橙边框 */
-    color: #5dade2 !important;                  /* 鲜亮天空蓝字 */
+    background: #1c2833 !important;            
+    border: 2px solid #f39c12 !important;      
+    color: #5dade2 !important;                  
     font-weight: 800 !important;
     padding-left: 25px !important;
     box-shadow: 0 6px 20px rgba(243, 156, 18, 0.35) !important;
 }
 
 /* ==========================================================================
-   👨‍🏫 教师专用隐藏解析面板暗黑主题变色适配
+   🛠️ 🌙 强效暗黑模式针对性对比度深度修正（解决浅蓝色难读问题）
    ========================================================================== */
+[data-theme="dark"] h2, 
+[data-theme="dark"] div[data-q-id] {
+    color: #ffffff !important; /* 🌟 强制将“选择题”标题和题干文字换成耀眼纯白色 */
+}
+
+[data-theme="dark"] div[data-q-id] ruby {
+    color: #ffffff !important; /* 🌟 强制让题干中被 ruby 分词包裹的内容在暗黑下同步呈现纯白色 */
+}
+
+[data-theme="dark"] .quiz-choice-btn:not(.selected) {
+    color: #e0e0e0 !important; /* 🌟 选项未被选中时，恢复舒适的高对比度浅灰色 */
+}
+
+[data-theme="dark"] .quiz-choice-btn:not(.selected) ruby {
+    color: #e0e0e0 !important; /* 🌟 选项内部的字词在未选中状态下也保持浅灰，决不变成难以阅读的蓝色 */
+}
+
+/* 👨‍🏫 教师专用隐藏解析面板暗黑主题变色适配 */
 [data-theme="dark"] div[style*="background: #f4f9f4"], 
 [data-theme="dark"] div[style*="background: rgb(244, 249, 244)"] {
-    background: #182618 !important;   /* 深沉绿茶色暗底 */
-    color: #52be80 !important;       /* 柔和浅翡翠绿字 */
+    background: #182618 !important;   
+    color: #52be80 !important;       
 }
 
 [data-theme="dark"] div[style*="background: #fcf8ff"], 
 [data-theme="dark"] div[style*="background: rgb(252, 248, 255)"] {
-    background: #231b2e !important;   /* 深沉紫藤色暗底 */
-    color: #bb8fce !important;       /* 柔和浅丁香紫字 */
+    background: #231b2e !important;   
+    color: #bb8fce !important;       
 }
 
 /* 📱 响应式适配移动端手机 */
@@ -447,5 +464,4 @@ ruby:hover, ruby.is-active {
     body { padding: 15px 10px; }
     .article-card { padding: 30px 20px; }
     #content p { font-size: 17px; }
-    .quiz-options { grid-template-columns: 1fr; }
 }
