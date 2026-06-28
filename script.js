@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (标准答案严格对齐对账版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (柔和白卡片深色模式增强版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -13,6 +13,26 @@ let userSelectedAnswers = {};
 let isTeacherMode = false;    
 
 window.onload = function() {
+    // 🌟 核心视觉注入：即使切换至深色模式，课文、选项卡片和生词本也雷打不动保持纯白底色，防止乌漆嘛黑
+    const style = document.createElement('style');
+    style.innerHTML = `
+        [data-theme='dark'] #content, 
+        [data-theme='dark'] .quiz-choice-btn,
+        [data-theme='dark'] #notebookSection,
+        [data-theme='dark'] #gameContainer {
+            background-color: #ffffff !important;
+            color: #2c3e50 !important;
+            border-color: #dcdde1 !important;
+        }
+        [data-theme='dark'] #articleTitle {
+            color: #ffffff !important;
+        }
+        [data-theme='dark'] .p-index {
+            color: #bdc3c7 !important;
+        }
+    `;
+    document.head.appendChild(style);
+
     const titleEl = document.getElementById('articleTitle');
     if (titleEl && typeof lessonTitle !== 'undefined') {
         titleEl.innerHTML = ""; 
@@ -158,7 +178,6 @@ function render() {
     finalizeParagraph(p);
 }
 
-// 🎯 选择题渲染器（终极修复：严格将老师模式标注、学生选择与 questions.js 原始数据字母对账）
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -201,43 +220,36 @@ function renderMultipleChoiceQuizzes() {
         const optionsBox = document.createElement('div');
         optionsBox.className = "options-group";
         
-        // 🌟 核心修复点1：在打乱顺序前，先明确并死死保住每一个选项原配的字母 (A/B/C/D)
         let processedOptions = q.options.map((opt, oIdx) => {
             const letters = ["A", "B", "C", "D"];
-            let originalLetter = letters[oIdx]; // 默认按索引分配
+            let originalLetter = letters[oIdx];
             let contentText = "";
 
             if (typeof opt === 'string') {
                 contentText = opt;
             } else if (opt && typeof opt === 'object') {
                 contentText = opt.content || opt.text || "";
-                if (opt.letter) originalLetter = opt.letter; // 如果原数据指定了 letter，以原数据为准
+                if (opt.letter) originalLetter = opt.letter;
             }
             return { originalLetter: originalLetter.toUpperCase(), contentText: contentText };
         });
 
-        // 开始乱序洗牌
         let shuffledOptions = [...processedOptions].sort(() => Math.random() - 0.5);
-        const staticDisplayLetters = ["A", "B", "C", "D"]; // 网页前端物理按钮固定的行首 ABCD
+        const staticDisplayLetters = ["A", "B", "C", "D"];
 
         shuffledOptions.forEach((opt, index) => {
-            const currentDisplayLetter = staticDisplayLetters[index]; // 当前按钮前端显示的物理前缀
+            const currentDisplayLetter = staticDisplayLetters[index]; 
             
-            // 智能擦除句子原生的 "A.", "B " 等前缀，防止双重重叠
             let cleanText = opt.contentText.replace(/^[A-DDa-d][\s\.\、\s]*/, "").trim();
-
-            // 强行组装：行首顺序铁定是固定的 A. B. C. D. 
             const finalOptText = `${currentDisplayLetter}. ${cleanText}`;
 
             const btn = document.createElement('button');
             btn.className = "quiz-choice-btn";
             btn.innerText = finalOptText;
             
-            // 🌟 核心修复点2：将 data-original-letter 死死绑定为原数据里的真实答案代号！
             btn.setAttribute("data-original-letter", opt.originalLetter); 
             btn.setAttribute("data-current-letter", currentDisplayLetter);
 
-            // 🌟 核心修复点3：教师模式答案标注，严格根据原数据的 originalLetter 与 q.answer 比对！
             if (isTeacherMode && opt.originalLetter === q.answer.toUpperCase()) {
                 btn.innerText = finalOptText + "  (⭐ 答案)";
                 btn.style.color = "#e67e22";
@@ -281,7 +293,6 @@ function renderMultipleChoiceQuizzes() {
                 btn.style.fontWeight = "700";              
                 btn.style.boxShadow = "0 4px 15px rgba(41, 128, 185, 0.15)"; 
 
-                // 记录学生选的原始答案字母
                 userSelectedAnswers[q.id] = opt.originalLetter; 
             };
             optionsBox.appendChild(btn);
@@ -307,7 +318,6 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -428,7 +438,6 @@ function revealCorrectOptionsDirectly() {
     });
 }
 
-// ==================== 🛠 *字词字典弹窗及生词本核心逻辑* ============================
 function openPop(el, i) {
     let d = null;
     if (currentDataType === 'lesson') {
