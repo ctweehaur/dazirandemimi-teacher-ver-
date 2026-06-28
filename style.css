@@ -385,7 +385,7 @@ ruby:hover, ruby.is-active {
 }
 
 /* ==========================================================================
-   ✨ 10道阅读理解选择题特制高级动态交互美化样式
+   ✨ 10道阅读理解选择题特制高级动态交互美化样式（高强度高亮优化版）
    ========================================================================== */
 .quiz-choice-btn {
     position: relative;
@@ -407,33 +407,37 @@ ruby:hover, ruby.is-active {
     cursor: not-allowed !important;
 }
 
-/* 🌟 日间模式下选中的强效视觉标记 */
+/* 🌟 日间模式下选中的强效视觉标记（更深色、带平移、加粗金边） */
 .quiz-choice-btn.selected {
-    background: #f0f8ff !important;
-    border: 2px solid #2980b9 !important; /* 边框加粗至 2px */
-    color: #2980b9 !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 15px rgba(41, 128, 185, 0.18) !important;
+    background: #eef7ff !important;            /* 更温润的青浅蓝色底 */
+    border: 2px solid #e67e22 !important;      /* 2px 琥珀金高显边框 */
+    color: #1b4f72 !important;                  /* 深孔雀蓝字体 */
+    font-weight: 800 !important;               /* 字重开到最大 */
+    padding-left: 25px !important;             /* 被选中的选项自动向右平移，造成段落感错落 */
+    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.25) !important; /* 琥珀金发光阴影 */
 }
 
 /* 🌟 🌙 暗黑模式下选中的强效视觉标记 */
 [data-theme="dark"] .quiz-choice-btn.selected {
-    background: #1a252f !important;      /* 沉稳黑蓝色暗底 */
-    border: 2px solid #3498db !important; /* 科技荧光蓝边框 */
-    color: #5dade2 !important;            /* 浅亮蓝字体 */
-    font-weight: 700 !important;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3) !important;
+    background: #1c2833 !important;            /* 沉稳黑蓝色暗底 */
+    border: 2px solid #f39c12 !important;      /* 荧光金橙边框 */
+    color: #5dade2 !important;                  /* 鲜亮天空蓝字 */
+    font-weight: 800 !important;
+    padding-left: 25px !important;
+    box-shadow: 0 6px 20px rgba(243, 156, 18, 0.35) !important;
 }
 
 /* ==========================================================================
    👨‍🏫 教师专用隐藏解析面板暗黑主题变色适配
    ========================================================================== */
-[data-theme="dark"] div[style*="background: #f4f9f4"] {
+[data-theme="dark"] div[style*="background: #f4f9f4"], 
+[data-theme="dark"] div[style*="background: rgb(244, 249, 244)"] {
     background: #182618 !important;   /* 深沉绿茶色暗底 */
     color: #52be80 !important;       /* 柔和浅翡翠绿字 */
 }
 
-[data-theme="dark"] div[style*="background: #fcf8ff"] {
+[data-theme="dark"] div[style*="background: #fcf8ff"], 
+[data-theme="dark"] div[style*="background: rgb(252, 248, 255)"] {
     background: #231b2e !important;   /* 深沉紫藤色暗底 */
     color: #bb8fce !important;       /* 柔和浅丁香紫字 */
 }
