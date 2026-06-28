@@ -2,7 +2,10 @@
 // 📥 《大自然的秘密》核心课文数据集 + 教师专属逐段赏析 - data.js
 // ==========================================================================
 
-const lessonTitle = "大自然的秘密";
+const lessonTitle = [
+  ["大自然的", "dà zì rán de", "Nature's", "Alam semula jadi punya"],
+  ["秘密", "mì mì", "secret", "rahsia"]
+];
 
 const lessonData = [
     // 正文第 1 段
