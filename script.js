@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (教师专属/高精度模糊防崩锁版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (高亮精简反馈版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -137,7 +137,6 @@ function render() {
 }
 
 // 🎯 选择题渲染器：内容随机洗牌，但开头的 A, B, C, D 顺序绝对固定。
-// 👨‍🏫 教师模式特权：未提交前，正确选项右侧会自动标注 (⭐ 答案) 给老师提前知晓！
 function renderMultipleChoiceQuizzes() {
     if (typeof quizDataList === 'undefined' || quizDataList.length === 0) return;
     
@@ -176,11 +175,10 @@ function renderMultipleChoiceQuizzes() {
         const optionsBox = document.createElement('div');
         optionsBox.className = "options-group";
         
-        // 剥离原先库里的 A/B/C/D 前缀，只把纯粹的内容拿出来洗牌
+        // 剥离前缀并清洗多余空格
         let pureContents = q.options.map(opt => opt.replace(/^[A-D]\s+/, "").trim());
         let shuffledContents = [...pureContents].sort(() => Math.random() - 0.5);
 
-        // 固定顺序的字母模板
         const prefixes = ["A", "B", "C", "D"];
 
         shuffledContents.forEach((content, index) => {
@@ -191,7 +189,6 @@ function renderMultipleChoiceQuizzes() {
             btn.innerText = finalOptText;
             btn.className = "quiz-choice-btn";
             
-            // 🌟 【安全锁升级】：智能容错模糊匹配，自动清除首尾中英文句号进行无错对齐
             const originalMatch = q.options.find(o => {
                 const cleanedO = o.replace(/^[A-D]\s+/, "").replace(/[。.]$/, "").trim();
                 const cleanedContent = content.replace(/[。.]$/, "").trim();
@@ -200,17 +197,15 @@ function renderMultipleChoiceQuizzes() {
 
             btn.setAttribute("data-original-text", originalMatch);
 
-            // 🔍 挖出原库里的真实字母
             const btnLetter = originalMatch ? originalMatch.trim().charAt(0) : "A"; 
 
-            // 👨‍🏫 【教师专享】：如果处于教师模式，且该选项是正确答案，提前标注 (⭐ 答案)
+            // 👨‍🏫 教师预知答案高光
             if (isTeacherMode && btnLetter === q.answer) {
                 btn.innerText = finalOptText + "  (⭐ 答案)";
                 btn.style.color = "#e67e22"; 
                 btn.style.fontWeight = "bold";
             }
 
-            // 基础结构样式
             btn.style.display = "block";
             btn.style.width = "100%";
             btn.style.textAlign = "left";
@@ -275,7 +270,7 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器：一次性核对并揭晓全卷对错
+// 🚀 全局结算批改器：精简版只放 ✅ 和 ❌ 反馈
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -294,7 +289,9 @@ function submitAllAnswers() {
 
         let selectedBtn = null;
         buttons.forEach(btn => {
-            if (btn.innerText === studentOptText || btn.innerText.startsWith(studentOptText)) { selectedBtn = btn; }
+            if (btn.innerText === studentOptText || btn.innerText.startsWith(studentOptText.substring(0, 5))) { 
+                selectedBtn = btn; 
+            }
         });
 
         const studentOriginalText = selectedBtn ? selectedBtn.getAttribute("data-original-text") : "";
@@ -312,26 +309,42 @@ function submitAllAnswers() {
             btn.style.color = "inherit";
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
+            btn.style.paddingLeft = "15px"; 
 
+            // 💡 1. 正确按钮：绿显并追加 ✅
             if (btnLetter === q.answer) {
                 currentCorrectLetterOnPage = pageLetter;
                 btn.style.background = "#2ecc71";
                 btn.style.color = "white";
                 btn.style.borderColor = "#2ecc71";
-                if (studentLetter === q.answer) {
-                    btn.innerText = btn.innerText + "  (✅️)";
-                }
+                btn.style.fontWeight = "bold";
+                const baseText = btn.innerText.replace("  (⭐ 答案)", "");
+                btn.innerText = baseText + "  ✅"; // 🌟 只放一个勾
             }
             
+            // 💡 2. 学生选错的按钮：红显并追加 ❌
             if (btn === selectedBtn && studentLetter !== q.answer) {
                 btn.style.background = "#e74c3c";
                 btn.style.color = "white";
                 btn.style.borderColor = "#e74c3c";
-                btn.innerText = btn.innerText + "  (❌)";
+                btn.style.fontWeight = "bold";
+                btn.innerText = btn.innerText + "  ❌"; // 🌟 只放一个叉
             }
         });
 
-        // 动态把当前测试洗牌出来的正确位置字母，灌入教师的剖析卡片里
+        // 💡 3. 生成全公开的“答案订正提示卡”
+        const feedBox = document.createElement("div");
+        feedBox.style.background = "#f4fdf7";
+        feedBox.style.borderLeft = "4px solid #2ecc71";
+        feedBox.style.padding = "12px 15px";
+        feedBox.style.marginTop = "15px";
+        feedBox.style.fontSize = "14px";
+        feedBox.style.color = "#27ae60";
+        feedBox.style.borderRadius = "4px";
+        feedBox.style.lineHeight = "1.6";
+        feedBox.innerHTML = `<strong>💡 本题正确答案是：<span style="font-size: 16px; color: #e67e22;">[ ${currentCorrectLetterOnPage} 选项 ]</span></strong><br><span style="color:#666; font-size:13px;">${q.analysis || '暂无深度解析。'}</span>`;
+        qBox.appendChild(feedBox);
+
         if (isTeacherMode && q.analysis) {
             const analysisBox = qBox.querySelector('div[style*="border-left: 4px solid rgb(155, 89, 182)"]');
             if (analysisBox) {
@@ -357,7 +370,7 @@ function submitAllAnswers() {
     }
 }
 
-// ==================== 🛠️ 字词精准字典弹窗核心逻辑 ============================
+// ==================== 🛠 *字词字典弹窗及生词本核心逻辑* ============================
 function openPop(el, i) {
     currentIdx = i; const d = lessonData[i];
     if (!d) return;
