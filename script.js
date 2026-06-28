@@ -1,5 +1,5 @@
 // ==========================================================================
-// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (纯净盲改+极简答案揭晓版)
+// ⚙️ 全互动式华文教学系统阅读器大脑 - script.js (直接选项 ✅ 干净版)
 // ==========================================================================
 
 let currentIdx = -1; 
@@ -270,7 +270,7 @@ function renderMultipleChoiceQuizzes() {
     });
 }
 
-// 🚀 全局结算批改器：盲改盲判，绝不提前剧透正确答案是哪一个
+// 🚀 全局结算批改器：盲改盲判，绝不提前剧透正确答案
 function submitAllAnswers() {
     const totalQuestions = quizDataList.length;
     const answeredCount = Object.keys(userSelectedAnswers).length;
@@ -298,18 +298,17 @@ function submitAllAnswers() {
         const studentLetter = studentOriginalText ? studentOriginalText.trim().charAt(0) : "";
 
         buttons.forEach(btn => {
-            btn.disabled = true; // 锁定
+            btn.disabled = true; 
             const btnOriginalText = btn.getAttribute("data-original-text");
             const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
 
-            // 清理状态
             btn.style.background = "#fff";
             btn.style.color = "inherit";
             btn.style.borderColor = "#dcdde1";
             btn.style.boxShadow = "none";
             btn.style.paddingLeft = "15px"; 
 
-            // 💡 【改动核心】：提交后，正确选项不再直接变绿！只有当学生刚好猜对时，该选项挂上 ✅ 并显示绿色
+            // 💡 只有学生刚好猜对的那一项变绿挂 ✅
             if (btn === selectedBtn) {
                 if (studentLetter === q.answer) {
                     btn.style.background = "#2ecc71";
@@ -318,7 +317,7 @@ function submitAllAnswers() {
                     btn.style.fontWeight = "bold";
                     btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅"; 
                 } else {
-                    // 如果猜错了，仅仅把选错的挂上 ❌ 变红，不把正确的暴露给学生
+                    // 如果猜错了，只挂 ❌ 变红
                     btn.style.background = "#e74c3c";
                     btn.style.color = "white";
                     btn.style.borderColor = "#e74c3c";
@@ -376,8 +375,8 @@ function submitAllAnswers() {
     showAnsBtn.onclick = () => {
         showAnsBtn.disabled = true;
         showAnsBtn.style.background = "#95a5a6";
-        showAnsBtn.innerText = "答案已揭晓";
-        revealExplanationsCardOnly(); // 仅仅揭晓答案代号，切除纯文字解析
+        showAnsBtn.innerText = "答案已在选项中标记";
+        revealCorrectOptionsDirectly(); // 🌟 触发直接选项内变绿挂 ✅
     };
     actionGroup.appendChild(showAnsBtn);
 
@@ -385,45 +384,43 @@ function submitAllAnswers() {
     resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-// 🌟【极简功能】：点击后只给干净的正确选项字母，不给任何解析
-function revealExplanationsCardOnly() {
+// 🌟【新升级功能】：点击后直接将正确按钮染绿并追加 ✅，不生成任何文字信息卡
+function revealCorrectOptionsDirectly() {
+    let currentCorrectLetterOnPage = "";
     quizDataList.forEach(q => {
         const qBox = document.querySelector(`div[data-q-id="${q.id}"]`);
         if (!qBox) return;
 
         const buttons = qBox.querySelectorAll('.quiz-choice-btn');
-        let currentCorrectLetterOnPage = "";
 
         buttons.forEach(btn => {
             const btnOriginalText = btn.getAttribute("data-original-text");
             const btnLetter = btnOriginalText ? btnOriginalText.trim().charAt(0) : ""; 
+            
+            // 锁定洗牌后的正确答案按钮
             if (btnLetter === q.answer) {
                 currentCorrectLetterOnPage = btn.innerText.trim().charAt(0);
                 
-                // 同时顺便把正确选项的按钮颜色给染绿，双重视觉加持
+                // 强制将选项直接染绿并加粗
                 btn.style.background = "#2ecc71";
                 btn.style.color = "white";
                 btn.style.borderColor = "#2ecc71";
                 btn.style.fontWeight = "bold";
-                if (!btn.innerText.includes("✅")) {
-                    btn.innerText = btn.innerText.replace("  (⭐ 答案)", "") + "  ✅";
+                
+                // 智能去教师重置，并挂上勾
+                const cleanText = btn.innerText.replace("  (⭐ 答案)", "");
+                if (!cleanText.includes("✅")) {
+                    btn.innerText = cleanText + "  ✅";
                 }
             }
         });
 
-        let existCard = qBox.querySelector('.dynamic-explanation-card');
-        if (!existCard) {
-            const feedBox = document.createElement("div");
-            feedBox.className = "dynamic-explanation-card";
-            feedBox.style.background = "#f4fdf7";
-            feedBox.style.borderLeft = "4px solid #2ecc71";
-            feedBox.style.padding = "10px 15px";
-            feedBox.style.marginTop = "10px";
-            feedBox.style.fontSize = "14px";
-            feedBox.style.color = "#27ae60";
-            feedBox.style.borderRadius = "4px";
-            feedBox.innerHTML = `<strong>💡 本题正确答案是：<span style="font-size: 16px; color: #e67e22;">[ ${currentCorrectLetterOnPage} 选项 ]</span></strong>`;
-            qBox.appendChild(feedBox);
+        // 👨‍🏫 顺便同步刷新教师模式下最底部的剖析代号提示
+        if (isTeacherMode && q.analysis) {
+            const analysisBox = qBox.querySelector('div[style*="border-left: 4px solid rgb(155, 89, 182)"]');
+            if (analysisBox) {
+                analysisBox.innerHTML = `<strong>📐 考点剖析 <span style="color:#e67e22;">[ 本次测试正确选项为：${currentCorrectLetterOnPage} ]</span>：</strong>${q.analysis}`;
+            }
         }
     });
 }
