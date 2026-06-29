@@ -11,9 +11,9 @@ const lessonTitle = [
 ];
 
 const lessonData = [
-    // 🌟 第一节：震撼弹 (每一句后面都放独立的换行词组，保证诗歌的下一行格式)
+    // 🌟 第 1 节：震撼弹
     ["震撼弹", "zhèn hàn dàn", "shocking bombshell", "kejutan besar / bom jangka"],
-    ["\n", "", "", ""], 
+    ["\n", "", "", ""], // 👈 智能单换行：让下一句在卡片内掉到“下一行”并左对齐
     ["没有", "méi yǒu", "there is no", "tidak ada / tanpa"],
     ["硝烟", "xiāo yān", "gunsmoke", "asap meriam"],
     ["的", "de", "particle", "yang"],
@@ -40,11 +40,12 @@ const lessonData = [
     ["家人", "jiā rén", "family", "ahli keluarga"],
     ["扔出了", "rēng chū le", "threw out", "melemparkan"],
     ["震撼弹", "zhèn hàn dàn", "bombshell", "kejutan yang amat besar"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈 空行（第一节完）
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发 script.js 智能切换至“第2节”大卡片与背景
 
-    // 🌟 第二节：考验与挑战
+    // 🌟 第 2 节：考验与挑战
     ["考验", "kǎo yàn", "trial", "ujian"],
     ["与", "yǔ", "and", "dan"],
     ["挑战", "tiǎo zhàn", "challenge", "cabaran"],
@@ -90,11 +91,12 @@ const lessonData = [
     ["美食", "měi shí", "delicious food", "makanan lazat"],
     ["的", "de", "particle", "yang"],
     ["重任", "zhòng rèn", "heavy mission", "tanggungjawab berat"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈 空行（第二节完）
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
-    // 🌟 第三节：奔波
+    // 🌟 第 3 节：奔波
     ["奔波", "bēn bō", "rushing around", "ke sana ke mari / membanting tulang"],
     ["\n", "", "", ""], 
     ["阳光明媚", "yáng guāng míng mèi", "bright sunshine", "cahaya matahari cerah"],
@@ -139,16 +141,16 @@ const lessonData = [
     ["订户", "dì hù", "subscriber", "pelanggan / pemesan"],
     ["的", "de", "particle", "punya"],
     ["手上", "shǒu shàng", "hands", "tangan / ke tangan"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈 空行（第三节完）
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
-    // 🌟 第四节：坚持
+    // 🌟 第 4 节：坚持 (包含原诗在叹息后的空行)
     ["坚持", "jiān chí", "persistence", "ketabahan / kecekalan"],
     ["\n", "", "", ""], 
     ["他", "tā", "he", "Dia"],
     ["深知", "shēn zhī", "know well", "amat mengetahui / sangat sedar"],
-    [" ", "", "", ""],
     ["准时", "zhǔn shí", "on time", "tepat pada masanya"],
     ["是", "shì", "is", "adalah"],
     ["承诺", "chéng nuò", "promise", "janji / komitmen"],
@@ -175,8 +177,9 @@ const lessonData = [
     ["化作", "huà zuò", "turn into", "menjadi / bertukar menjadi"],
     ["一声", "yì shēng", "a sound of", "satu"],
     ["叹息", "tàn xī", "sigh", "keluhan"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
-    ["\n", "", "", ""], // 👈 空行
+    ["\n", "", "", ""], // 👈 这是一个普通的行内空行（没有连着第二个 \n），在新诗第4节内制造空行效果，但绝不切大卡片！
     ["他", "tā", "he", "Dia"],
     ["在", "zài", "in", "di / dalam"],
     ["风里雨里", "fēng lǐ yǔ lǐ", "through storm", "redah angin dan hujan"],
@@ -213,11 +216,12 @@ const lessonData = [
     ["追逐", "zhuī zhú", "chase", "kejar-mengejar / mengejar"],
     ["的", "de", "particle", "yang"],
     ["游戏", "yóu xì", "game", "permainan"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈 空行（第四节完）
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
-    // 🌟 第五节：温暖与动力
+    // 🌟 第 5 节：温暖与动力
     ["温暖", "wēn nuǎn", "warmth", "Kehangatan"],
     ["与", "yǔ", "and", "dan"],
     ["动力", "dòng lì", "motivation", "motivasi / dorongan"],
@@ -257,11 +261,12 @@ const lessonData = [
     ["慰藉", "wèi jiè", "consolation", "sumber penghibur / kelegaan"],
     ["与", "yǔ", "and", "dan"],
     ["动力", "dòng lì", "motivation", "dorongan / kekuatan"],
+    ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈 空行（第五节完）
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
-    // 🌟 第六节：希冀
+    // 🌟 第 6 节：希冀
     ["希冀", "xī jì", "hope", "Harapan / impian"],
     ["\n", "", "", ""], 
     ["落寞", "luò mò", "lonely", "kesepian / kelesuan jiwa"],
@@ -279,7 +284,7 @@ const lessonData = [
     ["的", "de", "particle", "yang"],
     ["汗水", "hàn shuǐ", "sweat", "air peluh"],
     ["\n", "", "", ""], 
-    ["不会", "bú huì", "will not", "tidak akan"],
+    ["won't", "bú huì", "will not", "tidak akan"],
     ["白费", "bái fèi", "be in vain", "sia-sia / terbuang begitu sahaja"],
     ["。", "", "", ""],
     ["\n", "", "", ""], 
@@ -300,7 +305,7 @@ const lessonData = [
     ["；", "", "", ""],
     ["\n", "", "", ""], 
     ["因为", "yīn wèi", "because of", "kerana"],
-    ["包容", "bāo róng", "tolerance", "sifat bertolak ansur / toleransi"],
+    ["包容", "bāo r&oacute;ng", "tolerance", "sifat bertolak ansur / toleransi"],
     ["，", "", "", ""],
     ["\n", "", "", ""], 
     ["大家", "dà jiā", "everyone", "semua orang"],
@@ -326,18 +331,12 @@ const lessonData = [
     ["社会", "shè huì", "society", "masyarakat"]
 ];
 
-// 🌟 核心修正：在赏析数组中，凡是由于独立 \n 导致被迫换行的索引，
-// 都会用精准的空字符串填满，只在每一节的核心头部显式注明【第 X 节】，从而完美驯服系统组件！
+// 🌟 赏析完美回归为 6 个核心元素，彻底解决数据匹配的报错痛点！
 const lessonAppreciation = [
-  "💡【第1节：震撼弹】一开始就用‘没有硝烟的战争’来形容失业，爸爸拿出一封信，对全家来说就像丢下一个大炸弹（Kejutan besar），平稳的生活被打破了。",
-  "", "", "", "", "", "", "", 
-  "💡【第2节：考验与挑战】这一节写出了账单的压力。爸爸虽然很烦恼，但他没有逃避，勇敢坚定地（毅然）戴上头盔、驾着摩托车出门，决定当起送餐员（Rider）撑起这个家。",
-  "", "", "", "", "", "", "", "", "", 
-  "💡【第3节：奔波】写爸爸工作有多辛苦：大太阳时不怕晒，下暴雨时不怕淋。在车子超级多（车水马龙）的大街小巷里，他总是非常认真（兢兢业业）地把热腾腾的饭菜送到顾客手上。",
-  "", "", "", "", "", "", "", "", "", "",
-  "💡【第4节：坚持】这一节写到了送餐员的心酸。不管是迟到被顾客骂（埋怨），还是全身湿透分不清汗水雨水，爸爸都强打起精神（抖擞精神），跟着规矩、像和时间玩追逐游戏一样坚持把职责完成。",
-  "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-  "💡【第5节：温暖与动力】是什么让爸爸坚持下去？就是顾客说的一声‘谢谢’、送的一罐冷饮，还有回到家看到家人睡得很甜。这些小小的关心（慰藉），就是全天下爸爸最大的动力（Motivation）。",
-  "", "", "", "", "", "", "", "",
-  "💡【第6节：希冀】诗歌的最后感情升华了。爸爸不只希望自己的汗水没有白费，他还希望人们能因为看到了彼此的辛苦，而变得更愿意包容、更有同理心（Empathy，会为别人着想），一起把社会变得更好。"
+  "新诗的一开始就用‘没有硝烟的战争’来形容失业，爸爸拿出一封信，对全家来说就像丢下一个大炸弹（Kejutan besar），平稳的生活被打破了。",
+  "这一节写出了账单的压力。爸爸虽然很压力，但他没有逃避，勇敢坚定地（毅然）戴上头盔、驾着摩托车出门，当起送餐员（Rider）撑起这个家。",
+  "写爸爸工作有多辛苦：大太阳时不怕晒，下暴雨时不怕淋。在车子超级多（车水马龙）的大街小巷里，他总是非常认真（兢兢业业）地把热腾腾的饭菜送到顾客手上。",
+  "这一节写到了送餐员的心酸。不管是迟到被顾客骂（埋怨），还是全身体力耗尽、分不清汗水雨水，爸爸都强打起精神（抖擞精神），跟着规矩、像和时间玩追逐游戏一样坚持把职责完成。",
+  "是什么让爸爸坚持下去？就是顾客说的一声‘谢谢’、送的一罐冷饮，还有回到家看到家人睡得很甜。这些小小的关心（慰藉），就是全天下爸爸最大的动力（Motivation）。",
+  "诗歌的最后感情升华了。爸爸不只希望自己的汗水没有白费，他还希望人们能因为看到了彼此的辛苦，而变得更愿意包容、更有同理心（Empathy，会为别人着想），一起把社会变得更好。"
 ];
