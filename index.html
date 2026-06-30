@@ -4,16 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>华文智能互动学习阅读器</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 基础极简样式，确保流式卡片与选择题布局正常 */
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f5f7f8;
+            color: #2c3e50;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .control-panel, .vocab-notebook, .article-card, .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .control-panel {
+            display: flex;
+            gap: 10px;
+        }
+        .control-panel button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #eef2f3;
+            transition: background 0.2s;
+        }
+        .control-panel button:hover { background: #e2e8f0; }
+        .notebook-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .clear-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        /* 生词流式布局区 */
+        .words-flow-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        .word-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .word-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: #3498db;
+        }
+        .word-card .pinyin { font-size: 12px; color: #7f8c8d; margin-bottom: 2px; }
+        .word-card .chinese { font-size: 18px; font-weight: bold; color: #2c3e50; }
+        .word-card .english { font-size: 11px; color: #95a5a6; margin-top: 4px; }
+        .word-card .malay { font-size: 11px; color: #bdc3c7; }
+        
+        .title-card { background: #fafff0; border-color: #d4edda; }
+        .section-card {
+            background: #ffffff;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .section-tag {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #34495e;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .poetry-line-break { width: 100%; height: 0; margin: 0; }
+        .teacher-appreciation-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff9db;
+            border-left: 4px solid #f1c40f;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #7d6608;
+        }
+    </style>
 </head>
 <body>
 
+    <!-- 顶端控制面板 -->
     <div class="control-panel">
         <button id="themeToggleBtn" onclick="toggleTheme()">🌓 切换主题</button>
         <button id="gameToggleBtn" onclick="toggleGameMode()">🎯 生词测试</button>
         <button id="teacherModeBtn" onclick="toggleTeacherMode()" style="background: #e67e22; color: white;">👨‍🏫 教师模式</button>
     </div>
 
+    <!-- 我的生词本 -->
     <div class="vocab-notebook">
         <div class="notebook-title">
             <span>📖 我的生词本</span>
@@ -22,6 +135,7 @@
         <div id="notebookList" class="notebook-list"></div>
     </div>
 
+    <!-- 互动测试游戏面板 -->
     <div id="gameContainer" class="game-container" style="display: none;">
         <div class="quiz-card">
             <div id="quizProgress" style="font-size: 14px; color: #7f8c8d; margin-bottom: 5px;"></div>
@@ -31,16 +145,21 @@
         </div>
     </div>
 
+    <!-- 核心课文渲染区 -->
     <div class="article-card">
-        <h1 id="articleTitle">课文加载中...</h1>
-        <div id="content"></div>
+        <!-- 🎯 已完美修正 ID：完美对接 script.js 渲染引擎 -->
+        <h1 id="lesson-title">课文加载中...</h1>
+        <div id="lesson-content"></div>
     </div>
 
+    <!-- 课后理解选择题区 -->
     <div id="quizSection" class="article-card" style="margin-top: 30px; display: none;">
         <h2 style="font-size: 20px; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px dashed #bdc3c7; padding-bottom: 10px;">📝 选择题</h2>
         
+        <!-- 题目动态注入容器 -->
         <div id="quizContainer"></div>
 
+        <!-- 智能计分提交区 -->
         <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eaefed; text-align: center;">
             <button id="submitQuizBtn" onclick="submitAllAnswers()" style="padding: 12px 30px; background: #34495e; color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
                 提交检查 🚀
@@ -49,25 +168,7 @@
         </div>
     </div>
 
-    <div id="buddyPopover" class="buddy-popover">
-        <div class="pop-title-row">
-            <span id="popWord" class="pop-title">词</span>
-            <span id="popPinyin" class="pop-pinyin">[pīn yīn]</span>
-        </div>
-        <div class="pop-box pop-en">
-            <span class="pop-tag">EN</span>
-            <span id="popEn">English translation</span>
-        </div>
-        <div class="pop-box pop-bm">
-            <span class="pop-tag">BM</span>
-            <span id="popBm">Terjemahan Melayu</span>
-        </div>
-        <div class="pop-footer">
-            <button class="pop-btn-copy" onclick="saveToNotebook(event)">Copy 📋</button>
-        </div>
-        <div id="popArrow" class="pop-arrow"></div>
-    </div>
-
+    <!-- 数据源与核心逻辑脚本引入 -->
     <script src="data.js"></script>
     <script src="questions.js"></script>
     <script src="script.js"></script>
