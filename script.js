@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const titleContainer = document.getElementById("lesson-title");
     const contentContainer = document.getElementById("lesson-content");
 
+    // 1. 渲染标题
     if (typeof lessonTitle !== "undefined" && lessonTitle.length > 0 && titleContainer) {
         let titleHtml = "";
         lessonTitle.forEach(word => {
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         titleContainer.innerHTML = titleHtml;
     }
 
+    // 2. 判断诗歌还是散文
     let isPoetry = false;
     if (typeof lessonTitle !== "undefined" && lessonTitle.length > 0) {
         const titleText = lessonTitle.map(w => w[0]).join("");
@@ -25,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 3. 核心课文渲染
     if (typeof lessonData !== "undefined" && lessonData.length > 0 && contentContainer) {
         contentContainer.innerHTML = "";
 
@@ -35,23 +38,25 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!htmlContent.trim()) return;
 
             const labelText = isPoetry ? `第${sectionNum}节` : `第${sectionNum}段`;
-            const appreciationText = (typeof lessonAppreciation !== "undefined" && lessonAppreciation[sectionNum - 1]) 
-                ? lessonAppreciation[sectionNum - 1] 
-                : "";
+            
+            // 安全提取赏析文本
+            let appreciationText = "";
+            if (typeof lessonAppreciation !== "undefined" && lessonAppreciation[sectionNum - 1]) {
+                appreciationText = lessonAppreciation[sectionNum - 1];
+            }
+
+            // 拆开拼接，确保绝无标签嵌套冲突
+            let cardHtml = "";
+            cardHtml += '<div class="section-tag">' + labelText + '</div>';
+            cardHtml += '<div class="words-flow-container">' + htmlContent + '</div>';
+            
+            if (appreciationText) {
+                cardHtml += '<div class="teacher-appreciation-box">💡 <strong>教学赏析：</strong>' + appreciationText + '</div>';
+            }
 
             const cardElement = document.createElement("div");
             cardElement.className = "section-card";
-            cardElement.innerHTML = `
-                <div class="section-tag">${labelText}</div>
-                <div class="words-flow-container">
-                    ${htmlContent}
-                </div>
-                ${appreciationText ? `
-                    <div class="teacher-appreciation-box">
-                        💡 <strong>教学赏析：</strong>${appreciationText}
-                    </div>
-                ` : ""}
-            `;
+            cardElement.innerHTML = cardHtml;
             contentContainer.appendChild(cardElement);
         };
 
@@ -67,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         cardHtmlBuffer = "";
                         i++;
                     } else {
-                        cardHtmlBuffer += `<div class="poetry-line-break"></div>`;
+                        cardHtmlBuffer += '<div class="poetry-line-break"></div>';
                     }
                 } else {
                     renderSectionCard(cardHtmlBuffer, currentSectionIndex);
@@ -78,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cardHtmlBuffer += `
                     <div class="word-card" onclick="speakText('${currentItem[0]}')">
                         <span class="pinyin">${currentItem[1]}</span>
-                        <span class="chinese">${currentItem[currentItem[0] === "won't" ? 0 : 0]}</span>
+                        <span class="chinese">${currentItem[0]}</span>
                         <span class="english">${currentItem[2]}</span>
                         <span class="malay">${currentItem[3]}</span>
                     </div>
@@ -91,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 4. 渲染选择题 (来自 questions.js)
     const quizContainer = document.getElementById("quizContainer");
     const quizSection = document.getElementById("quizSection");
 
@@ -144,6 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// 5. 提交检查计分
 function submitAllAnswers() {
     if (typeof quizDataList === "undefined" || quizDataList.length === 0) return;
     
@@ -175,6 +182,7 @@ function submitAllAnswers() {
     }
 }
 
+// 6. 语音点读
 function speakText(text) {
     if ('speechSynthesis' in window) {
         const cleanText = text.replace(/[，。？！、\n]/g, "").trim();
@@ -186,6 +194,7 @@ function speakText(text) {
     }
 }
 
+// 预留空函数防止报错
 function toggleTheme() {}
 function toggleGameMode() {}
 function toggleTeacherMode() {}
