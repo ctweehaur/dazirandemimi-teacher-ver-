@@ -1,5 +1,5 @@
 // ==========================================================================
-// 📥 《奔驰在路上的汗水》核心课文数据集 + 教师专属逐段赏析 - data.js
+// 📥 《奔驰在路上的汗水》核心课文数据集 + 教师专属逐段赏析 - data.js (标准修复版)
 // ==========================================================================
 
 const lessonTitle = [
@@ -13,7 +13,7 @@ const lessonTitle = [
 const lessonData = [
     // 🌟 第 1 节：震撼弹
     ["震撼弹", "zhèn hàn dàn", "shocking bombshell", "kejutan besar / bom jangka"],
-    ["\n", "", "", ""], // 👈 智能单换行：让下一句在卡片内掉到“下一行”并左对齐
+    ["\n", "", "", ""], 
     ["没有", "méi yǒu", "there is no", "tidak ada / tanpa"],
     ["硝烟", "xiāo yān", "gunsmoke", "asap meriam"],
     ["的", "de", "particle", "yang"],
@@ -43,7 +43,7 @@ const lessonData = [
     ["。", "", "", ""],
     ["\n", "", "", ""], 
 
-    ["\n", "", "", ""], // 👈👈 连续两个换行：触发 script.js 智能切换至“第2节”大卡片与背景
+    ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
     // 🌟 第 2 节：考验与挑战
     ["考验", "kǎo yàn", "trial", "ujian"],
@@ -146,7 +146,7 @@ const lessonData = [
 
     ["\n", "", "", ""], // 👈👈 连续两个换行：触发换节
 
-    // 🌟 第 4 节：坚持 (包含原诗在叹息后的空行)
+    // 🌟 第 4 节：坚持
     ["坚持", "jiān chí", "persistence", "ketabahan / kecekalan"],
     ["\n", "", "", ""], 
     ["他", "tā", "he", "Dia"],
@@ -167,7 +167,7 @@ const lessonData = [
     ["招致", "zhāo zhì", "incur / bring", "mengundang / menyebabkan"],
     ["订户", "dì hù", "customer", "pelanggan"],
     ["的", "de", "particle", "punya"],
-    ["埋怨", "mái yaùn", "complaint", "rungutan / tidak puas hati"],
+    ["埋怨", "mái yuàn", "complaint", "rungutan / tidak puas hati"], 
     ["\n", "", "", ""], 
     ["满肚子", "mǎn dù zi", "stomach full of", "sepenuh perut / penuh dengan"],
     ["的", "de", "particle", "yang"],
@@ -179,7 +179,7 @@ const lessonData = [
     ["叹息", "tàn xī", "sigh", "keluhan"],
     ["。", "", "", ""],
     ["\n", "", "", ""], 
-    ["\n", "", "", ""], // 👈 这是一个普通的行内空行（没有连着第二个 \n），在新诗第4节内制造空行效果，但绝不切大卡片！
+    ["\n", "", "", ""], 
     ["他", "tā", "he", "Dia"],
     ["在", "zài", "in", "di / dalam"],
     ["风里雨里", "fēng lǐ yǔ lǐ", "through storm", "redah angin dan hujan"],
@@ -244,14 +244,14 @@ const lessonData = [
     ["家人", "jiā rén", "family", "ahli keluarga"],
     ["熟睡", "shú shuì", "fast asleep", "tidur nyenyak"],
     ["的", "de", "particle", "punya"],
-    ["面容", "miàn róng", "face", "wajah / raut wajah"],
+    ["面容", "miàn rong", "face", "wajah / raut wajah"],
     ["和", "hé", "and", "dan"],
     ["贴心", "tiē xīn", "considerate", "ambil berat / prihatin"],
     ["的", "de", "particle", "yang"],
     ["关爱", "guān ài", "care and love", "kasih sayang / perhatian"],
     ["\n", "", "", ""], 
     ["是", "shì", "are", "adalah"],
-    ["这些", "zhè xiē", "these", "hari-hari / semua"],
+    ["these", "zhè xiē", "these", "hari-hari / semua"],
     ["日子", "rì zi", "days", "hari / masa"],
     ["里", "lǐ", "in", "dalam"],
     ["\n", "", "", ""], 
@@ -284,7 +284,7 @@ const lessonData = [
     ["的", "de", "particle", "yang"],
     ["汗水", "hàn shuǐ", "sweat", "air peluh"],
     ["\n", "", "", ""], 
-    ["won't", "bú huì", "will not", "tidak akan"],
+    ["不会", "bú huì", "will not", "tidak akan"], 
     ["白费", "bái fèi", "be in vain", "sia-sia / terbuang begitu sahaja"],
     ["。", "", "", ""],
     ["\n", "", "", ""], 
@@ -305,7 +305,7 @@ const lessonData = [
     ["；", "", "", ""],
     ["\n", "", "", ""], 
     ["因为", "yīn wèi", "because of", "kerana"],
-    ["包容", "bāo r&oacute;ng", "tolerance", "sifat bertolak ansur / toleransi"],
+    ["包容", "bāo róng", "tolerance", "sifat bertolak ansur / toleransi"], // 👈 成功修正乱码
     ["，", "", "", ""],
     ["\n", "", "", ""], 
     ["大家", "dà jiā", "everyone", "semua orang"],
@@ -331,7 +331,6 @@ const lessonData = [
     ["社会", "shè huì", "society", "masyarakat"]
 ];
 
-// 🌟 赏析完美回归为 6 个核心元素，彻底解决数据匹配的报错痛点！
 const lessonAppreciation = [
   "新诗的一开始就用‘没有硝烟的战争’来形容失业，爸爸拿出一封信，对全家来说就像丢下一个大炸弹（Kejutan besar），平稳的生活被打破了。",
   "这一节写出了账单的压力。爸爸虽然很压力，但他没有逃避，勇敢坚定地（毅然）戴上头盔、驾着摩托车出门，当起送餐员（Rider）撑起这个家。",
